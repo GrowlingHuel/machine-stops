@@ -661,15 +661,32 @@ function show(id) {
 }
 
 // ── Mobile keyboard handling ──────────────────────────────────────────────────
-// When the soft keyboard opens it resizes the visual viewport.
-// We lock the game screen to the visual viewport height so the input
-// stays visible and the text area shrinks gracefully.
 if (window.visualViewport) {
+  let lastHeight = window.visualViewport.height;
+
   window.visualViewport.addEventListener('resize', () => {
-    const game = document.getElementById('screen-game');
-    if (game.style.display !== 'none') {
-      game.style.height = window.visualViewport.height + 'px';
-      game.style.top    = window.visualViewport.offsetTop + 'px';
+    const game     = document.getElementById('screen-game');
+    const imgWrap  = document.getElementById('image-wrap');
+    const hdr      = document.getElementById('scene-header');
+    if (game.style.display === 'none') return;
+
+    const vvh      = window.visualViewport.height;
+    const keyboardOpen = vvh < lastHeight * 0.8;
+
+    // Resize container to visible viewport
+    game.style.height = vvh + 'px';
+    game.style.top    = window.visualViewport.offsetTop + 'px';
+
+    // Hide image and header when keyboard is open to maximise text space
+    if (keyboardOpen) {
+      imgWrap.style.height  = '0';
+      imgWrap.style.overflow = 'hidden';
+      hdr.style.display     = 'none';
+    } else {
+      imgWrap.style.height   = '';
+      imgWrap.style.overflow = '';
+      hdr.style.display      = '';
+      lastHeight = vvh;
     }
   });
 }
