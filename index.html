@@ -842,8 +842,8 @@ const VERBS = {
   help:'help', '?':'help',
   why:'examine', what:'examine', how:'examine', where:'examine', who:'examine',
   put:'go', drop:'go', leave:'go', back:'go', return:'go',
-  agree:'talk', yes:'talk', ok:'talk', okay:'talk', consent:'talk', accept:'talk', sure:'talk',
-  no:'talk', refuse:'talk', decline:'talk', reject:'talk',
+  agree:'affirm', yes:'affirm', ok:'affirm', okay:'affirm', consent:'affirm', accept:'affirm', sure:'affirm', fine:'affirm',
+  no:'deny', refuse:'deny', decline:'deny', reject:'deny', never:'deny',
 };
 
 const NOISE = new Set([
@@ -1244,7 +1244,7 @@ const SCENES = {
 
   "kuno_first_words": {
     "_passage_only": true,
-    "on_enter": "__IMAGE:plate_active.jpg|\u2018I want you to come and see me.\u2019 The words arrive with unusual directness. Kuno lives on the other side of the world. You have not visited anyone in eleven years. The idea of travel is generally regarded as a primitive impulse \u2014 something the Machine has relieved us of. \u2018I can speak to you now,\u2019 you say. \u2018The plate carries everything.\u2019 \u2018Not this,\u2019 he says. \u2018Come in person, mother.\u2019 The word body is about to be spoken. You can feel it forming. \u2018The ideas expressed by the word body \u2014\u2019 you begin. \u2018Yes,\u2019 says Kuno.",
+    "on_enter": "__IMAGE:plate_active.jpg|\u2018I want you to come and see me.\u2019 The words arrive with unusual directness. Kuno lives on the other side of the world. You have not visited anyone in eleven years. The idea of travel is generally regarded as a primitive impulse \u2014 something the Machine has relieved us of. \u2018I can speak to you now,\u2019 you say. \u2018The plate carries everything.\u2019 \u2018Not this,\u2019 he says. \u2018Come in person, mother.\u2019 The word body is about to be spoken. You can feel it forming. In this world, the body is not something one discusses directly \u2014 it is the embarrassing fact beneath the civilised mind, the animal remainder the Machine has largely superseded. \u2018The ideas expressed by the word body \u2014\u2019 you begin. \u2018Yes,\u2019 says Kuno. He means: yes, exactly that. The plate. The words. None of it is enough. He wants you there.",
     "actions": {
       "talk": {
         "why": "__PASSAGE:kuno_why__",
@@ -1253,6 +1253,8 @@ const SCENES = {
         "refuse": "__PASSAGE:kuno_refuse__",
         "_default": "__PASSAGE:kuno_why__"
       },
+      "affirm": { "_default": "__TRANSITION:preparing_travel__" },
+      "deny": { "_default": "__PASSAGE:kuno_refuse__" },
       "look": {
         "_default": "Kuno\u2019s face in the plate. He is waiting. He has an expression you have not seen transmitted before \u2014 or perhaps you have, and did not attend to it."
       },
@@ -1262,7 +1264,10 @@ const SCENES = {
       },
       "wait": { "_default": "Kuno waits. He is patient in a way that will, eventually, require an answer." },
       "go": { "_default": "He is still speaking. You have not yet answered." },
-      "_fallback": "Kuno watches you through the plate. Something he will not say through it remains between you."
+      "_fallback": [
+        "Kuno watches you through the plate. He wants you there \u2014 physically, in person. You could ask why, agree to come, or tell him you will not.",
+        "The question is simple: will you go to him? You could say yes, say no, or ask why he cannot simply tell you through the plate."
+      ]
     }
   },
 
@@ -1275,6 +1280,8 @@ const SCENES = {
         "why": "__PASSAGE:kuno_press__",
         "_default": "__PASSAGE:kuno_press__"
       },
+      "affirm": { "_default": "__TRANSITION:preparing_travel__" },
+      "deny": { "_default": "__PASSAGE:kuno_refuse__" },
       "look": {
         "_default": "Kuno\u2019s face in the plate. Something he will not say through it is still in the air between you."
       },
@@ -1296,9 +1303,11 @@ const SCENES = {
     "on_enter": "You press him. He will not say more through the plate. \u2018The Machine,\u2019 he says quietly, \u2018cannot transmit this.\u2019 There is something in this statement that you find, for reasons you cannot satisfactorily examine, faintly irritating. You say so. He listens. \u2018Yes,\u2019 he says. \u2018That is what I thought you would feel. Come and see me anyway.\u2019",
     "actions": {
       "talk": {
-        "kuno": "__TRANSITION:decision_travel__",
-        "_default": "He will not be pressed further through the plate. The call has reached its limit."
+        "kuno": "__TRANSITION:preparing_travel__",
+        "_default": "__TRANSITION:decision_travel__"
       },
+      "affirm": { "_default": "__TRANSITION:preparing_travel__" },
+      "deny": { "_default": "__TRANSITION:decision_travel__" },
       "look": { "_default": "Kuno\u2019s face in the plate. Patient. His answer is already given." },
       "examine": { "_default": "What the plate transmits is less than what is there. He has said what he will say through it." },
       "wait": { "_default": "A silence opens between you. It is not an uncomfortable silence. It is a waiting one." },
@@ -1516,7 +1525,10 @@ const SCENES = {
         "_default": "__PASSAGE:kuno_detail__"
       },
       "wait": { "_default": "__PASSAGE:kuno_detail__" },
-      "_fallback": "__PASSAGE:kuno_detail__"
+      "_fallback": [
+        "He has been to the surface. He breathed the air directly. He is watching your face. You could ask how, ask why, or simply wait for him to continue.",
+        "He went out. He is here now, watching to see how you receive this. Ask him what it was like, or simply wait."
+      ]
     }
   },
 
@@ -1527,10 +1539,18 @@ const SCENES = {
       "talk": {
         "kuno": "__PASSAGE:kuno_homeless_threat__",
         "afraid": "__PASSAGE:kuno_homeless_threat__",
+        "person": "__PASSAGE:kuno_homeless_threat__",
+        "figure": "__PASSAGE:kuno_homeless_threat__",
+        "ground": "He is quiet for a moment. \u2018I do not know what they were. The Mending Apparatus, perhaps, extended further than any of us knew. It felt like the earth was alive and unwilling.\u2019",
+        "stars": "\u2018The Book explains stars,\u2019 he says again. \u2018But the explanation is not the stars.\u2019 He looks at you. \u2018I kept thinking: the Book has a section for this. And the section was nothing like the thing.\u2019",
+        "green": "\u2018There is no word for it that carries it,\u2019 he says. \u2018The plate has never transmitted that green. That is what I mean. The plate carries information. It does not carry the thing.\u2019",
         "_default": "__PASSAGE:kuno_homeless_threat__"
       },
       "wait": { "_default": "__PASSAGE:kuno_homeless_threat__" },
-      "_fallback": "__PASSAGE:kuno_homeless_threat__"
+      "_fallback": [
+        "He has told you about the sky, the stars, the green. And the figure who reached toward him before the ground took them. He is waiting for you to respond to this.",
+        "Ask him about what he saw — the stars, the green, the person — or simply wait for him to continue."
+      ]
     }
   },
 
@@ -1538,9 +1558,16 @@ const SCENES = {
     "_passage_only": true,
     "on_enter": "\u2018Because,\u2019 he says, \u2018I wished to know whether the old stories were true. The stories about light, and distance, and things that were not made.\u2019 He meets your eyes. \u2018The Machine made us, Vashti. But the Machine was made. I wanted to know \u2014 by what. Or for what.\u2019",
     "actions": {
-      "talk": { "_default": "__PASSAGE:kuno_homeless_threat__" },
+      "talk": {
+        "machine": "\u2018We have always been taught that it provides,\u2019 he says. \u2018But provision is not the same as origin. I wanted to know what was there before it provided. What is there now, in the places it does not reach.\u2019",
+        "made": "\u2018Yes,\u2019 he says. \u2018Someone made it. That means something was there before it. That means the world is not the Machine.\u2019",
+        "_default": "__PASSAGE:kuno_homeless_threat__"
+      },
       "wait": { "_default": "__PASSAGE:kuno_homeless_threat__" },
-      "_fallback": "__PASSAGE:kuno_homeless_threat__"
+      "_fallback": [
+        "He wanted to know what was there before the Machine \u2014 what the world is when the Machine is not answering it. You could respond, or simply let him continue.",
+        "The Machine was made. He wanted to know by what. Ask him more, or wait."
+      ]
     }
   },
 
@@ -1562,8 +1589,9 @@ const SCENES = {
         "homeless": "\u2018I do not know who she was,\u2019 he says. \u2018She reached toward me. I think she was Homeless. I think the Homeless survive.\u2019 He lets that sit between you.",
         "_default": "__PASSAGE:vashti_decision_look__"
       },
+      "affirm": { "_default": "__PASSAGE:vashti_decision_look__" },
+      "deny": { "_default": "__PASSAGE:vashti_refuses_shafts__" },
       "examine": {
-        "kuno": "He is calm in a way that reads differently now. Not the calm of someone who is not afraid. The calm of someone who has decided something.",
         "_default": "The room. His calm. The things he has said that the Book has no section for."
       },
       "go": {

@@ -95,7 +95,7 @@
   },
   "kuno_first_words": {
     "_passage_only": true,
-    "on_enter": "__IMAGE:plate_active.jpg|‘I want you to come and see me.’ The words arrive with unusual directness. Kuno lives on the other side of the world. You have not visited anyone in eleven years. The idea of travel is generally regarded as a primitive impulse — something the Machine has relieved us of. ‘I can speak to you now,’ you say. ‘The plate carries everything.’ ‘Not this,’ he says. ‘Come in person, mother.’ The word body is about to be spoken. You can feel it forming. ‘The ideas expressed by the word body —’ you begin. ‘Yes,’ says Kuno.",
+    "on_enter": "__IMAGE:plate_active.jpg|‘I want you to come and see me.’ The words arrive with unusual directness. Kuno lives on the other side of the world. You have not visited anyone in eleven years. The idea of travel is generally regarded as a primitive impulse — something the Machine has relieved us of. ‘I can speak to you now,’ you say. ‘The plate carries everything.’ ‘Not this,’ he says. ‘Come in person, mother.’ The word body is about to be spoken. You can feel it forming. In this world, the body is not something one discusses directly — it is the embarrassing fact beneath the civilised mind, the animal remainder the Machine has largely superseded. ‘The ideas expressed by the word body —’ you begin. ‘Yes,’ says Kuno. He means: yes, exactly that. The plate. The words. None of it is enough. He wants you there.",
     "actions": {
       "talk": {
         "why": "__PASSAGE:kuno_why__",
@@ -103,6 +103,12 @@
         "no": "__PASSAGE:kuno_refuse__",
         "refuse": "__PASSAGE:kuno_refuse__",
         "_default": "__PASSAGE:kuno_why__"
+      },
+      "affirm": {
+        "_default": "__TRANSITION:preparing_travel__"
+      },
+      "deny": {
+        "_default": "__PASSAGE:kuno_refuse__"
       },
       "look": {
         "_default": "Kuno’s face in the plate. He is waiting. He has an expression you have not seen transmitted before — or perhaps you have, and did not attend to it."
@@ -117,7 +123,10 @@
       "go": {
         "_default": "He is still speaking. You have not yet answered."
       },
-      "_fallback": "Kuno watches you through the plate. Something he will not say through it remains between you."
+      "_fallback": [
+        "Kuno watches you through the plate. He wants you there — physically, in person. You could ask why, agree to come, or tell him you will not.",
+        "The question is simple: will you go to him? You could say yes, say no, or ask why he cannot simply tell you through the plate."
+      ]
     }
   },
   "kuno_why": {
@@ -129,6 +138,12 @@
         "why": "__PASSAGE:kuno_press__",
         "_default": "__PASSAGE:kuno_press__"
       },
+      "affirm": {
+        "_default": "__TRANSITION:preparing_travel__"
+      },
+      "deny": {
+        "_default": "__PASSAGE:kuno_refuse__"
+      },
       "look": {
         "_default": "Kuno’s face in the plate. Something he will not say through it is still in the air between you."
       },
@@ -137,6 +152,7 @@
         "_default": "The plate transmits his face. What it cannot transmit is what his face contains."
       },
       "go": {
+        "kuno": "__TRANSITION:preparing_travel__",
         "_default": "You are not ready to close the call. Something in his voice requires more of you."
       },
       "wait": {
@@ -150,8 +166,14 @@
     "on_enter": "You press him. He will not say more through the plate. ‘The Machine,’ he says quietly, ‘cannot transmit this.’ There is something in this statement that you find, for reasons you cannot satisfactorily examine, faintly irritating. You say so. He listens. ‘Yes,’ he says. ‘That is what I thought you would feel. Come and see me anyway.’",
     "actions": {
       "talk": {
-        "kuno": "__TRANSITION:decision_travel__",
-        "_default": "He will not be pressed further through the plate. The call has reached its limit."
+        "kuno": "__TRANSITION:preparing_travel__",
+        "_default": "__TRANSITION:decision_travel__"
+      },
+      "affirm": {
+        "_default": "__TRANSITION:preparing_travel__"
+      },
+      "deny": {
+        "_default": "__TRANSITION:decision_travel__"
       },
       "look": {
         "_default": "Kuno’s face in the plate. Patient. His answer is already given."
@@ -263,11 +285,7 @@
       "wait": {
         "_default": "The arrangement is made. The time approaches."
       },
-      "_fallback": [
-        "The arrangement is made. The vessel waits at the platform.",
-        "There is nothing to do here but go. The corridor leads to the airship.",
-        "__TRANSITION:corridor__"
-      ]
+      "_fallback": "__TRANSITION:corridor__"
     }
   },
   "corridor": {
@@ -395,7 +413,10 @@
       "wait": {
         "_default": "__PASSAGE:kuno_detail__"
       },
-      "_fallback": "__PASSAGE:kuno_detail__"
+      "_fallback": [
+        "He has been to the surface. He breathed the air directly. He is watching your face. You could ask how, ask why, or simply wait for him to continue.",
+        "He went out. He is here now, watching to see how you receive this. Ask him what it was like, or simply wait."
+      ]
     }
   },
   "kuno_detail": {
@@ -405,12 +426,20 @@
       "talk": {
         "kuno": "__PASSAGE:kuno_homeless_threat__",
         "afraid": "__PASSAGE:kuno_homeless_threat__",
+        "person": "__PASSAGE:kuno_homeless_threat__",
+        "figure": "__PASSAGE:kuno_homeless_threat__",
+        "ground": "He is quiet for a moment. ‘I do not know what they were. The Mending Apparatus, perhaps, extended further than any of us knew. It felt like the earth was alive and unwilling.’",
+        "stars": "‘The Book explains stars,’ he says again. ‘But the explanation is not the stars.’ He looks at you. ‘I kept thinking: the Book has a section for this. And the section was nothing like the thing.’",
+        "green": "‘There is no word for it that carries it,’ he says. ‘The plate has never transmitted that green. That is what I mean. The plate carries information. It does not carry the thing.’",
         "_default": "__PASSAGE:kuno_homeless_threat__"
       },
       "wait": {
         "_default": "__PASSAGE:kuno_homeless_threat__"
       },
-      "_fallback": "__PASSAGE:kuno_homeless_threat__"
+      "_fallback": [
+        "He has told you about the sky, the stars, the green. And the figure who reached toward him before the ground took them. He is waiting for you to respond to this.",
+        "Ask him about what he saw — the stars, the green, the person — or simply wait for him to continue."
+      ]
     }
   },
   "kuno_why_surface": {
@@ -418,12 +447,17 @@
     "on_enter": "‘Because,’ he says, ‘I wished to know whether the old stories were true. The stories about light, and distance, and things that were not made.’ He meets your eyes. ‘The Machine made us, Vashti. But the Machine was made. I wanted to know — by what. Or for what.’",
     "actions": {
       "talk": {
+        "machine": "‘We have always been taught that it provides,’ he says. ‘But provision is not the same as origin. I wanted to know what was there before it provided. What is there now, in the places it does not reach.’",
+        "made": "‘Yes,’ he says. ‘Someone made it. That means something was there before it. That means the world is not the Machine.’",
         "_default": "__PASSAGE:kuno_homeless_threat__"
       },
       "wait": {
         "_default": "__PASSAGE:kuno_homeless_threat__"
       },
-      "_fallback": "__PASSAGE:kuno_homeless_threat__"
+      "_fallback": [
+        "He wanted to know what was there before the Machine — what the world is when the Machine is not answering it. You could respond, or simply let him continue.",
+        "The Machine was made. He wanted to know by what. Ask him more, or wait."
+      ]
     }
   },
   "kuno_homeless_threat": {
@@ -447,8 +481,13 @@
         "homeless": "‘I do not know who she was,’ he says. ‘She reached toward me. I think she was Homeless. I think the Homeless survive.’ He lets that sit between you.",
         "_default": "__PASSAGE:vashti_decision_look__"
       },
+      "affirm": {
+        "_default": "__PASSAGE:vashti_decision_look__"
+      },
+      "deny": {
+        "_default": "__PASSAGE:vashti_refuses_shafts__"
+      },
       "examine": {
-        "kuno": "He is calm in a way that reads differently now. Not the calm of someone who is not afraid. The calm of someone who has decided something.",
         "_default": "The room. His calm. The things he has said that the Book has no section for."
       },
       "go": {
@@ -487,17 +526,8 @@
         "_default": "The open panel. The dark shaft behind it. Kuno beside you, saying nothing. These are the things in the room."
       },
       "wait": {
-        "_default": [
-          "You stand at the entrance. Kuno waits. The air from the shaft arrives in slow pulses.",
-          "The air continues. Kuno says nothing. The shaft is still there, still open.",
-          "You can go in, or you can go back. Those are the directions available to you."
-        ]
+        "_default": "You stand at the entrance. Kuno waits. The air from the shaft arrives in slow pulses."
       },
-      "_fallback": [
-        "Kuno has shown you the shaft. He is waiting to see what you do with it.",
-        "The shaft is open. You could lean in, breathe the air, or go back.",
-        "Go in to look closer, or go back to leave."
-      ],
       "enter": {
         "_default": "__FLAG:looked_in_shaft|You lean into the opening. The dark is absolute and the air is different — cool, carrying something unfiltered. You do not go further. But you have been in it, briefly.__"
       },
@@ -511,7 +541,8 @@
       },
       "take": {
         "_default": "There is nothing here to take. There is only the shaft, and what it leads to."
-      }
+      },
+      "_fallback": "Kuno has shown you the shaft. He is waiting to see what you do with it."
     }
   },
   "vashti_refuses_shafts": {
@@ -1136,7 +1167,7 @@
         "_default": "__TRANSITION:corridor_fork__"
       },
       "wait": {
-        "_default": "__TRANSITION:corridor_fork__"
+        "_default": "The light in the walls fades. The air thickens. Waiting is no longer available."
       },
       "_fallback": [
         "The corridor offers two directions: air from above, voices ahead.",
