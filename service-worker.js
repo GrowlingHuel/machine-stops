@@ -1,4 +1,4 @@
-const CACHE = 'machine-stops-v2';
+const CACHE = 'machine-stops-v3';
 
 const PRECACHE = [
   '/',
