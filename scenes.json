@@ -117,7 +117,7 @@
       "go": {
         "_default": "He is still speaking. You have not yet answered."
       },
-      "_fallback": "Kuno watches you through the plate. His request remains between you."
+      "_fallback": "Kuno watches you through the plate. Something he will not say through it remains between you."
     }
   },
   "kuno_why": {
@@ -143,7 +143,7 @@
       "wait": {
         "_default": "__PASSAGE:kuno_press__"
       },
-      "_fallback": "The word Homeless remains in the air. Kuno waits."
+      "_fallback": "Kuno watches you. Something he will not say through the plate remains between you."
     }
   },
   "kuno_press": {
@@ -228,7 +228,7 @@
         "_default": "You wait. The cell waits with you. It is, in its way, endlessly patient."
       },
       "think": {
-        "_default": "You think about Kuno. About Homelessness, and what it would mean for him. About the concept of visiting. About whether the body — the idea expressed by that word — is truly as irrelevant as the Book suggests. You find yourself uncertain, which is unusual."
+        "_default": "You think about Kuno. About what he will not transmit. About the concept of visiting — the body, physically present, across the world. About whether the Machine’s provision for this means it has always been possible, and why you have never done it. You find yourself uncertain, which is unusual."
       },
       "_fallback": [
         "The Machine hums. The decision sits in the room with you.",
