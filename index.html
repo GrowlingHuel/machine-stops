@@ -828,7 +828,8 @@ const VERBS = {
   north:'go', south:'go', east:'go', west:'go', up:'go', down:'go',
   outside:'go', out:'go', inside:'go',
   take:'take', get:'take', grab:'take', pick:'take', collect:'take',
-  use:'use', activate:'use', press:'use', touch:'use', operate:'use',
+  use:'use', activate:'use', press:'use', operate:'use',
+  touch:'touch',
   open:'open', close:'close', shut:'close',
   talk:'talk', speak:'talk', ask:'talk', tell:'talk', say:'talk',
   answer:'talk', address:'talk', call:'talk',
@@ -924,6 +925,12 @@ function process(raw) {
     if (result) resolved = true;
   }
 
+  // 3c. for touch, fall through to use if scene has no touch handler
+  if (!result && verb === 'touch') {
+    result = acts['use']?.[noun] || acts['use']?._default;
+    if (result) resolved = true;
+  }
+
   // 4. scene fallback — counts as unresolved
   if (!result) {
     result = acts._fallback;
@@ -979,6 +986,19 @@ function resolve(r) {
 
   if (r.startsWith('__GAMEOVER:')) {
     triggerEnd(r.slice(11).replace(/__$/, ''));
+    return;
+  }
+
+  if (r.startsWith('__FLAG_PASSAGE:')) {
+    const inner      = r.slice(15).replace(/__$/, '');
+    const firstPipe  = inner.indexOf('|');
+    const secondPipe = inner.indexOf('|', firstPipe + 1);
+    const flag    = inner.slice(0, firstPipe);
+    const passage = secondPipe === -1 ? inner.slice(firstPipe + 1) : inner.slice(firstPipe + 1, secondPipe);
+    const text    = secondPipe === -1 ? '' : inner.slice(secondPipe + 1);
+    G.flags[flag] = true;
+    if (text) print(text, 'narrative');
+    loadScene(passage);
     return;
   }
 

@@ -51,8 +51,8 @@
         "_default": "The Machine provides the means. You use what is appropriate."
       },
       "talk": {
-        "kuno": "__IF:plate_activated|__PASSAGE:kuno_first_words__|__FLAG:plate_activated|You activate the plate. Kuno’s face appears, bearing that quality you could not name.|__",
-        "_default": "__IF:plate_activated|__PASSAGE:kuno_first_words__|__FLAG:plate_activated|You activate the plate. Kuno’s face appears.|__"
+        "kuno": "__IF:plate_activated|__PASSAGE:kuno_first_words__|__FLAG_PASSAGE:plate_activated|kuno_first_words|You activate the plate. Kuno’s face appears, bearing that quality you could not name.__",
+        "_default": "__IF:plate_activated|__PASSAGE:kuno_first_words__|__FLAG_PASSAGE:plate_activated|kuno_first_words|You activate the plate. Kuno’s face appears.__"
       },
       "wait": {
         "_default": "__IF:plate_activated|__PASSAGE:kuno_first_words__|After a long moment — without your having touched the controls — the plate illuminates. Kuno’s face appears.__"
