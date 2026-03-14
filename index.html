@@ -1,0 +1,2152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="The Machine Stops">
+  <meta name="theme-color" content="#0c0a08">
+  <title>The Machine Stops</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300;1,500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:         #0c0a08;
+      --surface:    #111009;
+      --surface2:   #181410;
+      --border:     #2a1f0f;
+      --border2:    #3a2d18;
+      --glow:       #c4913e;
+      --glow-dim:   #7a5a25;
+      --glow-faint: #3d2d12;
+      --cold:       #7ab3cc;
+      --text:       #ddd0b8;
+      --text-dim:   #8a7d68;
+      --text-faint: #4a4030;
+      --danger:     #8b3a2a;
+      --font-body:  'Crimson Pro', Georgia, serif;
+      --font-disp:  'Cormorant Garamond', 'Times New Roman', serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      height: 100%;
+      height: -webkit-fill-available;
+    }
+
+    body {
+      height: 100%;
+      height: -webkit-fill-available;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 17px;
+      line-height: 1.65;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── TITLE SCREEN ──────────────────────────────── */
+    #screen-title {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      padding: 2.5rem 2rem;
+      padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
+      text-align: center;
+      background:
+        radial-gradient(ellipse at 50% 40%, #1e1408 0%, #0c0a08 65%),
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(196,145,62,0.015) 2px,
+          rgba(196,145,62,0.015) 4px
+        );
+    }
+
+    .title-glyph {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 1.5rem;
+      opacity: 0.5;
+      animation: glyph-pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes glyph-pulse {
+      0%,100% { opacity: 0.3; transform: scale(1); }
+      50%      { opacity: 0.6; transform: scale(1.03); }
+    }
+
+    #screen-title h1 {
+      font-family: var(--font-disp);
+      font-size: clamp(2rem, 8vw, 2.8rem);
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      color: var(--glow);
+      line-height: 1.15;
+    }
+
+    .title-rule {
+      width: 80px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--glow-dim), transparent);
+      margin: 1.2rem auto;
+    }
+
+    .title-byline {
+      font-family: var(--font-disp);
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    .title-epigraph {
+      font-size: 0.95rem;
+      font-style: italic;
+      color: var(--text-dim);
+      max-width: 300px;
+      margin: 2rem auto 2.5rem;
+      line-height: 1.8;
+      opacity: 0.85;
+    }
+
+    #btn-begin {
+      padding: 0.75rem 3rem;
+      background: transparent;
+      border: 1px solid var(--glow-dim);
+      color: var(--glow);
+      font-family: var(--font-disp);
+      font-size: 0.9rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.35s;
+      position: relative;
+    }
+
+    #btn-begin::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--glow-faint);
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+
+    #btn-begin:hover::before,
+    #btn-begin:focus::before { opacity: 1; }
+    #btn-begin:focus { outline: none; }
+
+    /* ── GAME SCREEN ───────────────────────────────── */
+    #screen-game {
+      display: none;
+      flex-direction: column;
+      /* Use dvh where supported, fall back to fill-available, then vh */
+      height: 100dvh;
+      height: -webkit-fill-available;
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      /* Contain the layout even when keyboard opens */
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      margin: auto;
+    }
+
+    /* Square image area — capped so it never dominates on mobile */
+    #image-wrap {
+      position: relative;
+      width: 100%;
+      /* On small screens cap at 42% of viewport height so text gets room */
+      height: min(100vw, 42vh);
+      background: #060504;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    /* On larger screens (desktop/tablet landscape) allow full square */
+    @media (min-height: 700px) and (min-width: 500px) {
+      #image-wrap {
+        height: min(100vw, 52vh);
+      }
+    }
+
+    #scene-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.9s ease;
+    }
+
+    #scene-img.fading { opacity: 0; }
+
+    /* Vignette + bottom fade on image */
+    #image-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at center, transparent 45%, rgba(6,5,4,0.55) 100%),
+        linear-gradient(to bottom, transparent 55%, rgba(6,5,4,0.85) 100%);
+      pointer-events: none;
+    }
+
+    /* Placeholder machine glyph when image absent */
+    #img-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+    }
+
+    #img-placeholder svg {
+      opacity: 0.12;
+      animation: glyph-pulse 4s ease-in-out infinite;
+    }
+
+    /* Scene header strip */
+    #scene-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.35rem 1rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    #scene-act {
+      font-family: var(--font-disp);
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    #scene-title {
+      font-family: var(--font-disp);
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--glow-dim);
+    }
+
+    /* Text output — takes all remaining space, scrolls internally */
+    #text-out {
+      flex: 1;
+      min-height: 0; /* critical: allows flex child to shrink below content size */
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0.9rem 1rem;
+      background: var(--bg);
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+
+    #text-out::-webkit-scrollbar       { width: 2px; }
+    #text-out::-webkit-scrollbar-track { background: transparent; }
+    #text-out::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .entry {
+      margin-bottom: 0.8rem;
+      animation: entry-in 0.35s ease both;
+    }
+
+    @keyframes entry-in {
+      from { opacity: 0; transform: translateY(3px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .entry.narrative {
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .entry.player {
+      color: var(--text-faint);
+      font-size: 0.85rem;
+      font-style: italic;
+      padding-left: 0.8rem;
+      border-left: 1px solid var(--border);
+    }
+
+    .entry.system {
+      color: var(--glow-faint);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-align: center;
+      font-family: var(--font-disp);
+      color: var(--text-faint);
+      margin: 0.3rem 0;
+    }
+
+    /* Input row — pinned to bottom, above home bar */
+    #input-row {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.55rem 0.8rem;
+      padding-bottom: max(0.55rem, env(safe-area-inset-bottom));
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+      align-items: center;
+    }
+
+    #txt-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      /* Prevent iOS auto-zoom on focus (requires 16px min) */
+      font-size: max(1rem, 16px);
+      padding: 0.3rem 0.1rem;
+      outline: none;
+      caret-color: var(--glow);
+      min-width: 0;
+      /* Prevent iOS styling */
+      -webkit-appearance: none;
+      border-radius: 0;
+    }
+
+    #txt-input:focus           { border-bottom-color: var(--glow-dim); }
+    #txt-input::placeholder    { color: var(--text-faint); font-style: italic; font-size: 0.88rem; }
+
+    #btn-go {
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--font-disp);
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 0.5rem 1rem;
+      /* Larger tap target on mobile */
+      min-height: 44px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      -webkit-appearance: none;
+      border-radius: 0;
+    }
+
+    #btn-go:hover,
+    #btn-go:focus { border-color: var(--glow-dim); color: var(--glow); outline: none; }
+    #btn-go:active { background: var(--glow-faint); }
+
+    /* Inventory bar */
+    #inv-bar {
+      display: none;
+      gap: 0.4rem;
+      padding: 0.35rem 0.8rem;
+      background: var(--surface2);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+      overflow-x: auto;
+      align-items: center;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #inv-bar.show { display: flex; }
+
+    .inv-label {
+      font-family: var(--font-disp);
+      font-size: 0.55rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      white-space: nowrap;
+      flex-shrink: 0;
+      padding-right: 0.3rem;
+    }
+
+    .inv-chip {
+      position: relative;
+      min-width: 38px;
+      height: 38px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: border-color 0.2s;
+      padding: 2px;
+    }
+
+    .inv-chip:hover { border-color: var(--glow-dim); }
+
+    .inv-chip img {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+    }
+
+    .inv-chip-label {
+      font-family: var(--font-disp);
+      font-size: 0.48rem;
+      color: var(--glow-dim);
+      text-align: center;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      padding: 0 2px;
+      max-width: 52px;
+    }
+
+    .inv-tip {
+      position: absolute;
+      bottom: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      white-space: nowrap;
+      padding: 0.3rem 0.6rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 10;
+    }
+
+    .inv-chip:hover .inv-tip { opacity: 1; }
+
+    /* Ending screen */
+    #screen-end {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      padding: 2rem;
+      padding-bottom: max(2rem, env(safe-area-inset-bottom));
+      text-align: center;
+      background: radial-gradient(ellipse at center, #140e08 0%, #0c0a08 70%);
+      overflow-y: auto;
+    }
+
+    #end-title {
+      font-family: var(--font-disp);
+      font-size: clamp(1.5rem, 6vw, 2rem);
+      font-weight: 300;
+      color: var(--glow);
+      margin-bottom: 1rem;
+      letter-spacing: 0.05em;
+    }
+
+    #end-text {
+      font-size: 1rem;
+      font-style: italic;
+      color: var(--text-dim);
+      max-width: 320px;
+      line-height: 1.85;
+      margin-bottom: 2.5rem;
+    }
+
+    .end-rule {
+      width: 60px;
+      height: 1px;
+      background: var(--glow-dim);
+      margin: 0 auto 2rem;
+      opacity: 0.5;
+    }
+
+    #btn-again {
+      padding: 0.7rem 2.2rem;
+      min-height: 44px;
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--text-dim);
+      font-family: var(--font-disp);
+      font-size: 0.8rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      -webkit-appearance: none;
+      border-radius: 0;
+    }
+
+    #btn-again:hover { border-color: var(--glow-dim); color: var(--glow); }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════ TITLE -->
+<div id="screen-title">
+  <svg class="title-glyph" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="32" r="29" stroke="#c4913e" stroke-width="0.75"/>
+    <circle cx="32" cy="32" r="18" stroke="#c4913e" stroke-width="0.75"/>
+    <circle cx="32" cy="32" r="7"  stroke="#c4913e" stroke-width="0.75"/>
+    <circle cx="32" cy="32" r="2"  fill="#c4913e"/>
+    <line x1="32" y1="3"  x2="32" y2="14" stroke="#c4913e" stroke-width="0.75"/>
+    <line x1="32" y1="50" x2="32" y2="61" stroke="#c4913e" stroke-width="0.75"/>
+    <line x1="3"  y1="32" x2="14" y2="32" stroke="#c4913e" stroke-width="0.75"/>
+    <line x1="50" y1="32" x2="61" y2="32" stroke="#c4913e" stroke-width="0.75"/>
+    <line x1="52.5" y1="11.5" x2="44.7" y2="19.3" stroke="#c4913e" stroke-width="0.5" opacity="0.5"/>
+    <line x1="11.5" y1="52.5" x2="19.3" y2="44.7" stroke="#c4913e" stroke-width="0.5" opacity="0.5"/>
+    <line x1="52.5" y1="52.5" x2="44.7" y2="44.7" stroke="#c4913e" stroke-width="0.5" opacity="0.5"/>
+    <line x1="11.5" y1="11.5" x2="19.3" y2="19.3" stroke="#c4913e" stroke-width="0.5" opacity="0.5"/>
+  </svg>
+
+  <h1>The Machine<br>Stops</h1>
+  <div class="title-rule"></div>
+  <div class="title-byline">After E.M. Forster · 1909</div>
+
+  <p class="title-epigraph">
+    "Cannot you see, cannot all you lecturers see, that it is we that are dying,
+    and that down here the only life that really lives is the Machine?"
+  </p>
+
+  <button id="btn-begin" onclick="beginGame()">Begin</button>
+</div>
+
+<!-- ══════════════════════════════ GAME -->
+<div id="screen-game">
+
+  <div id="image-wrap">
+    <img id="scene-img" src="" alt="" class="fading">
+    <div id="img-placeholder">
+      <svg width="90" height="90" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="29" stroke="#c4913e" stroke-width="0.75"/>
+        <circle cx="32" cy="32" r="18" stroke="#c4913e" stroke-width="0.75"/>
+        <circle cx="32" cy="32" r="7"  stroke="#c4913e" stroke-width="0.75"/>
+        <circle cx="32" cy="32" r="2"  fill="#c4913e"/>
+        <line x1="32" y1="3"  x2="32" y2="14" stroke="#c4913e" stroke-width="0.75"/>
+        <line x1="32" y1="50" x2="32" y2="61" stroke="#c4913e" stroke-width="0.75"/>
+        <line x1="3"  y1="32" x2="14" y2="32" stroke="#c4913e" stroke-width="0.75"/>
+        <line x1="50" y1="32" x2="61" y2="32" stroke="#c4913e" stroke-width="0.75"/>
+      </svg>
+    </div>
+  </div>
+
+  <div id="scene-header">
+    <span id="scene-act"></span>
+    <span id="scene-title"></span>
+  </div>
+
+  <div id="text-out"></div>
+
+  <div id="input-row">
+    <input
+      id="txt-input"
+      type="text"
+      placeholder="what do you do?"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+    >
+    <button id="btn-go" onclick="handleSubmit()">Enter</button>
+  </div>
+
+  <div id="inv-bar">
+    <span class="inv-label">Held</span>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════ ENDING -->
+<div id="screen-end">
+  <div class="title-glyph" style="width:48px;height:48px;opacity:0.3">
+    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="32" cy="32" r="29" stroke="#c4913e" stroke-width="0.75"/>
+      <circle cx="32" cy="32" r="18" stroke="#c4913e" stroke-width="0.75"/>
+    </svg>
+  </div>
+  <h2 id="end-title"></h2>
+  <div class="end-rule"></div>
+  <p id="end-text"></p>
+  <button id="btn-again" onclick="restartGame()">Begin Again</button>
+</div>
+
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+
+const G = {
+  scene:          null,
+  inventory:      [],
+  flags:          {},
+  visited:        new Set(),
+  imgCurrent:     null,
+  data:           null,
+  fallback_count: 0,   // consecutive unresolved inputs in current scene
+  wait_count:     0,   // consecutive wait inputs in current scene
+};
+
+// ─── Item definitions ───────────────────────────────────────────────────────
+const ITEMS = {
+  book_of_machine: {
+    label: 'The Book',
+    thumb: null,
+    desc:  'The Book of the Machine. Ninth edition. The sum of all permitted wisdom.'
+  },
+  kuno_letter: {
+    label: "Kuno's Note",
+    thumb: null,
+    desc:  "A written note from Kuno. Delivered through the postal tubes. It reads only: Come."
+  },
+  respirator: {
+    label: 'Respirator',
+    thumb: null,
+    desc:  'A machine-issued respirator for surface passage. Its use is officially discouraged.'
+  },
+  committee_notice: {
+    label: 'Notice',
+    thumb: null,
+    desc:  'An official notice from the Central Committee. Precise, absolute, and very calm.'
+  },
+};
+
+// ─── Endings ────────────────────────────────────────────────────────────────
+const ENDINGS = {
+  compliant_death: {
+    title: 'The Machine Stops',
+    text:  'You remained in your armchair. The air grew slow, then still. The dark was total and quiet. You had not gone anywhere you were not supposed to go. The cell held you, as it had always held you. The Machine, at the end, held you too.',
+  },
+  witnessed_death: {
+    title: 'The Last Transmission',
+    text:  'You went toward the voices and found the corridor ending at a wall. The phosphorescence was nearly gone. You sat against it — a wall that had, until very recently, been lit from within. You were present at the end of something enormous. You understood, in the dark, what it was. The understanding did not help and was not meant to. This was not nothing.',
+  },
+  surface: {
+    title: 'The Homeless',
+    text:  'The sky was there. It did not care about you. This was, you found, the correct response. You breathed it directly — the air entering you without instruction, without procedure, without the Machine between. It was cold. It was enormous. It was not amber.',
+  },
+  kuno_saved: {
+    title: 'What Survives',
+    text:  'They found each other in the dark. His hand. Her hand. Real — the word the Book had warned against, the word that was the only word. Above them, through the failing walls of the world, air moved. What came next is not the story. That there was a next is.',
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function show(id) {
+  ['screen-title','screen-game','screen-end'].forEach(s => {
+    const el = document.getElementById(s);
+    el.style.display = 'none';
+  });
+  const target = document.getElementById(id);
+  target.style.display = 'flex';
+  target.style.flexDirection = 'column';
+}
+
+// ── Mobile keyboard handling ──────────────────────────────────────────────────
+// When the soft keyboard opens it resizes the visual viewport.
+// We lock the game screen to the visual viewport height so the input
+// stays visible and the text area shrinks gracefully.
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    const game = document.getElementById('screen-game');
+    if (game.style.display !== 'none') {
+      game.style.height = window.visualViewport.height + 'px';
+      game.style.top    = window.visualViewport.offsetTop + 'px';
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function beginGame() {
+  try {
+    const r = await fetch('scenes.json');
+    if (!r.ok) throw new Error('not found');
+    G.data = await r.json();
+  } catch(_) {
+    G.data = SCENES;
+  }
+  show('screen-game');
+  loadScene('vashti_cell');
+}
+
+function restartGame() {
+  G.scene          = null;
+  G.inventory      = [];
+  G.flags          = {};
+  G.visited        = new Set();
+  G.imgCurrent     = null;
+  G.fallback_count = 0;
+  G.wait_count     = 0;
+  document.getElementById('text-out').innerHTML = '';
+  renderInventory();
+  show('screen-title');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SCENE LOADING
+// ═══════════════════════════════════════════════════════════════════════════
+
+function loadScene(id) {
+  const sc = G.data[id];
+  if (!sc) { print(`[missing scene: ${id}]`, 'system'); return; }
+
+  // Flag gate
+  if (sc.flags_required) {
+    for (const f of sc.flags_required) {
+      if (!G.flags[f]) {
+        print(sc.flags_blocked_text || 'You cannot go there.', 'narrative');
+        return;
+      }
+    }
+  }
+
+  G.scene          = id;
+  G.fallback_count = 0;
+  G.wait_count     = 0;
+  const alreadySeen = G.visited.has(id);
+  G.visited.add(id);
+
+  // Image / header only for non-passage scenes
+  if (!sc._passage_only) {
+    if (sc.image && sc.image !== G.imgCurrent) setImage(sc.image);
+    if (sc.act)   document.getElementById('scene-act').textContent   = sc.act;
+    if (sc.title) document.getElementById('scene-title').textContent = sc.title;
+  }
+
+  // Flags on enter
+  if (sc.flags_set_on_enter) sc.flags_set_on_enter.forEach(f => { G.flags[f] = true; });
+
+  if (sc.on_enter && !alreadySeen) resolve(sc.on_enter);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// IMAGE
+// ═══════════════════════════════════════════════════════════════════════════
+
+function setImage(filename) {
+  G.imgCurrent = filename;
+  const el    = document.getElementById('scene-img');
+  const ph    = document.getElementById('img-placeholder');
+  el.classList.add('fading');
+
+  const tmp = new Image();
+  tmp.onload = () => {
+    el.src = `images/${filename}`;
+    el.classList.remove('fading');
+    el.style.display  = 'block';
+    ph.style.display  = 'none';
+  };
+  tmp.onerror = () => {
+    el.style.display = 'none';
+    ph.style.display = 'flex';
+  };
+  tmp.src = `images/${filename}`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// OUTPUT
+// ═══════════════════════════════════════════════════════════════════════════
+
+function print(text, type) {
+  const out  = document.getElementById('text-out');
+  const div  = document.createElement('div');
+  div.className = `entry ${type}`;
+  div.textContent = text;
+  out.appendChild(div);
+  out.scrollTop = out.scrollHeight;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INPUT
+// ═══════════════════════════════════════════════════════════════════════════
+
+document.getElementById('txt-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleSubmit();
+});
+
+function handleSubmit() {
+  const el  = document.getElementById('txt-input');
+  const raw = el.value.trim();
+  if (!raw) return;
+  el.value = '';
+  print(`> ${raw}`, 'player');
+  process(raw);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PARSER
+// ═══════════════════════════════════════════════════════════════════════════
+
+const VERBS = {
+  look:'look', l:'look', observe:'look', survey:'look', view:'look',
+  examine:'examine', x:'examine', inspect:'examine', study:'examine',
+  read:'read',
+  go:'go', move:'go', walk:'go', travel:'go', enter:'go',
+  leave:'go', exit:'go', proceed:'go',
+  north:'go', south:'go', east:'go', west:'go', up:'go', down:'go',
+  outside:'go', out:'go', inside:'go',
+  take:'take', get:'take', grab:'take', pick:'take', collect:'take',
+  use:'use', activate:'use', press:'use', touch:'use', operate:'use',
+  open:'open', close:'close', shut:'close',
+  talk:'talk', speak:'talk', ask:'talk', tell:'talk', say:'talk',
+  answer:'talk', address:'talk', call:'talk',
+  give:'give', show:'give', offer:'give',
+  wait:'wait', rest:'wait', think:'wait', listen:'wait',
+  inventory:'inv', i:'inv', items:'inv',
+  help:'help', '?':'help',
+  why:'examine', what:'examine', how:'examine', where:'examine', who:'examine',
+};
+
+const NOISE = new Set([
+  'the','a','an','at','to','in','on','with','and','or','of',
+  'my','your','it','its','this','that','there','here','about',
+  'into','from','for','through','around','toward','towards',
+]);
+
+const DIRS = new Set(['north','south','east','west','up','down','out','outside','in','inside']);
+
+function parse(raw) {
+  const words = raw.toLowerCase().replace(/['"]/g, '').split(/\s+/);
+  let verb = null, noun = [];
+
+  for (const w of words) {
+    if (!verb && VERBS[w]) {
+      verb = VERBS[w];
+      // direction words become go + noun
+      if (DIRS.has(w)) { verb = 'go'; noun.push(w); }
+    } else if (!NOISE.has(w)) {
+      noun.push(w);
+    }
+  }
+
+  // Bare direction with no verb captured
+  if (!verb) {
+    for (const w of words) {
+      if (DIRS.has(w)) { verb = 'go'; noun = [w]; break; }
+    }
+  }
+
+  return { verb, noun: noun.join(' ') || '_default' };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DISPATCH
+// ═══════════════════════════════════════════════════════════════════════════
+
+function process(raw) {
+  const { verb, noun } = parse(raw);
+
+  // Meta commands — never count as fallbacks
+  if (verb === 'inv')  { showInv();  return; }
+  if (verb === 'help') { showHelp(); return; }
+
+  const sc = G.data[G.scene];
+  if (!sc) return;
+
+  if (!verb) {
+    G.fallback_count++;
+    resolve(sc.actions?._fallback || 'The thought disperses. You attend to the room.');
+    return;
+  }
+
+  const acts = sc.actions || {};
+  let result = null;
+  let resolved = false;
+
+  // 1. exact verb + noun
+  result = acts[verb]?.[noun];
+
+  // 2. partial noun match
+  if (!result && noun !== '_default') {
+    const va = acts[verb] || {};
+    for (const k of Object.keys(va)) {
+      if (k !== '_default' && k !== '_fallback') {
+        if (noun.includes(k) || k.includes(noun)) { result = va[k]; break; }
+      }
+    }
+  }
+
+  // 3. verb default
+  if (!result) result = acts[verb]?._default;
+
+  // 4. scene fallback — counts as unresolved
+  if (!result) {
+    result = acts._fallback;
+    G.fallback_count++;
+  } else {
+    resolved = true;
+  }
+
+  // 5. global — also unresolved
+  if (!result) {
+    result = 'The impulse finds no purchase. The room continues.';
+    G.fallback_count++;
+  }
+
+  // Reset fallback counter on genuine resolution
+  if (resolved) G.fallback_count = 0;
+
+  // Track consecutive waits
+  if (verb === 'wait') {
+    G.wait_count++;
+  } else {
+    G.wait_count = 0;
+  }
+
+  resolve(result);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SENTINEL RESOLVER
+// ═══════════════════════════════════════════════════════════════════════════
+
+function resolve(r) {
+  if (!r) return;
+
+  // Array: escalating fallback — use fallback_count as index, clamped to length
+  if (Array.isArray(r)) {
+    r = r[Math.min(G.fallback_count, r.length - 1)];
+  }
+
+  if (r.startsWith('__TRANSITION:')) {
+    const inner = r.slice(13).replace(/__$/, '');
+    const [sid, pretext] = inner.split('|');
+    if (pretext) print(pretext, 'narrative');
+    print('— — —', 'system');
+    loadScene(sid);
+    return;
+  }
+
+  if (r.startsWith('__PASSAGE:')) {
+    loadScene(r.slice(10).replace(/__$/, ''));
+    return;
+  }
+
+  if (r.startsWith('__GAMEOVER:')) {
+    triggerEnd(r.slice(11).replace(/__$/, ''));
+    return;
+  }
+
+  if (r.startsWith('__FLAG:')) {
+    const inner = r.slice(7).replace(/__$/, '');
+    const idx   = inner.indexOf('|');
+    const flag  = idx === -1 ? inner : inner.slice(0, idx);
+    const text  = idx === -1 ? ''    : inner.slice(idx + 1);
+    G.flags[flag] = true;
+    if (text) print(text, 'narrative');
+    return;
+  }
+
+  if (r.startsWith('__INVENTORY:add:')) {
+    const inner = r.slice(16).replace(/__$/, '');
+    const [item, ...rest] = inner.split('|');
+    addItem(item);
+    if (rest.length) print(rest.join('|'), 'narrative');
+    return;
+  }
+
+  if (r.startsWith('__INVENTORY:remove:')) {
+    const inner = r.slice(19).replace(/__$/, '');
+    const [item, ...rest] = inner.split('|');
+    removeItem(item);
+    if (rest.length) print(rest.join('|'), 'narrative');
+    return;
+  }
+
+  if (r.startsWith('__NEEDS_FLAG:')) {
+    const inner = r.slice(13).replace(/__$/, '');
+    const [flag, fallback] = inner.split('|');
+    if (!G.flags[flag]) print(fallback || 'You cannot do that yet.', 'narrative');
+    return;
+  }
+
+  if (r.startsWith('__IF:')) {
+    const inner = r.slice(5).replace(/__$/, '');
+    const [flag, t, f] = inner.split('|');
+    resolve(G.flags[flag] ? t : (f || ''));
+    return;
+  }
+
+  if (r.startsWith('__IMAGE:')) {
+    const inner = r.slice(8).replace(/__$/, '');
+    const [img, ...rest] = inner.split('|');
+    setImage(img);
+    if (rest.length) resolve(rest.join('|'));
+    return;
+  }
+
+  // __WAIT_GATE:n|action__ — fires action after n consecutive waits,
+  // otherwise prints the n-indexed line from _wait_sequence (or a default)
+  if (r.startsWith('__WAIT_GATE:')) {
+    const inner = r.slice(12).replace(/__$/, '');
+    const pipeIdx = inner.indexOf('|');
+    const n      = parseInt(inner.slice(0, pipeIdx), 10);
+    const action = inner.slice(pipeIdx + 1);
+    if (G.wait_count >= n) {
+      resolve(action);
+    } else {
+      // Print the nth wait-sequence entry, or a generic holding line
+      const sc  = G.data[G.scene];
+      const seq = sc?._wait_sequence;
+      if (seq && seq.length) {
+        print(seq[Math.min(G.wait_count - 1, seq.length - 1)], 'narrative');
+      } else {
+        print('The silence deepens.', 'narrative');
+      }
+    }
+    return;
+  }
+
+  print(r, 'narrative');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INVENTORY
+// ═══════════════════════════════════════════════════════════════════════════
+
+function addItem(id) {
+  if (!G.inventory.includes(id)) { G.inventory.push(id); renderInventory(); }
+}
+
+function removeItem(id) {
+  G.inventory = G.inventory.filter(x => x !== id);
+  renderInventory();
+}
+
+function renderInventory() {
+  const bar = document.getElementById('inv-bar');
+  bar.className = G.inventory.length ? 'show' : '';
+
+  // Rebuild beyond label
+  while (bar.children.length > 1) bar.removeChild(bar.lastChild);
+
+  G.inventory.forEach(id => {
+    const def  = ITEMS[id] || { label: id, thumb: null, desc: '' };
+    const chip = document.createElement('div');
+    chip.className = 'inv-chip';
+
+    if (def.thumb) {
+      const img = document.createElement('img');
+      img.src = def.thumb; img.alt = def.label;
+      chip.appendChild(img);
+    } else {
+      const span = document.createElement('span');
+      span.className = 'inv-chip-label';
+      span.textContent = def.label;
+      chip.appendChild(span);
+    }
+
+    const tip = document.createElement('div');
+    tip.className = 'inv-tip';
+    tip.textContent = def.desc || def.label;
+    chip.appendChild(tip);
+
+    chip.addEventListener('click', () => print(`${def.label}: ${def.desc}`, 'narrative'));
+    bar.appendChild(chip);
+  });
+}
+
+function showInv() {
+  if (!G.inventory.length) {
+    print('You carry nothing. The Machine provides all that is needed.', 'narrative');
+  } else {
+    print(`You carry: ${G.inventory.map(id => ITEMS[id]?.label || id).join(', ')}.`, 'narrative');
+  }
+}
+
+function showHelp() {
+  print('Commands: look · examine [thing] · go [place/direction] · take [thing] · use [thing] · talk [to person] · read [thing] · wait · inventory', 'system');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ENDINGS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function triggerEnd(id) {
+  const e = ENDINGS[id] || { title: 'The End', text: '' };
+  document.getElementById('end-title').textContent = e.title;
+  document.getElementById('end-text').textContent  = e.text;
+  show('screen-end');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PWA
+// ═══════════════════════════════════════════════════════════════════════════
+
+if ('serviceWorker' in navigator) {
+  // Unregister any existing service workers so updates always take effect
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  });
+  // Re-register fresh on next load
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SCENES — inline fallback (identical content lives in scenes.json)
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SCENES = {
+
+  "vashti_cell": {
+    "image": "cell_normal.jpg",
+    "act": "Part One \u2014 The Air-Ship",
+    "title": "The Cell",
+    "on_enter": "The room, though it contains nothing, is in touch with all that you care for in the world. This is your room. Hexagonal, padded, perfectly adequate. The speaking plate on the near wall pulses amber in a rhythm you do not quite recognise — not the steady glow of standby, but something asking. Your armchair rests in its proper place. The Book of the Machine lies on the reading desk. The air arrives, filtered and warmed, as it has always arrived.",
+    "actions": {
+      "look": {
+        "_default": "Hexagonal walls, padded at intervals. A thousand apertures admit regulated light. The speaking plate. The armchair. The Book. The air. Everything is present.",
+        "plate": "Oval. Set into the wall. Faintly luminous. Through it you have spoken with thousands, and never once felt the need for more.",
+        "speaking plate": "Oval. Set into the wall. Faintly luminous. Through it you have spoken with thousands, and never once felt the need for more.",
+        "book": "The Book of the Machine lies on the reading desk. Its cover is worn smooth in the places your hands habitually fall.",
+        "chair": "Your armchair. It has adjusted to your form over years of use. You cannot imagine sitting in any other.",
+        "air": "The air arrives as it always arrives. You breathe it without noticing, as one does."
+      },
+      "open": {
+        "book": "__PASSAGE:examine_book__",
+        "_default": "There is nothing here requiring opening."
+      },
+      "take": {
+        "book": "__INVENTORY:add:book_of_machine|You take the Book of the Machine from the desk. Its weight in your hands is a known and reassuring thing.__",
+        "_default": "The Machine provides whatever you require. There is nothing here that needs taking."
+      },
+      "sit": {
+        "_default": "You are already settled. The armchair knows you."
+      },
+      "examine": {
+        "plate": "The speaking plate is ready. It connects you to the world — which is to say, to everything.",
+        "speaking plate": "The speaking plate is ready. It connects you to the world — which is to say, to everything.",
+        "amber": "The amber glow is the plate's resting state — open, waiting, ready to connect. It has glowed this colour your entire life. You have never thought to question it before.",
+        "glow": "The amber glow is the plate's resting state — open, waiting, ready to connect. It has glowed this colour your entire life. You have never thought to question it before.",
+        "book": "__PASSAGE:examine_book__",
+        "chair": "The armchair is yours in the deepest sense. It knows you.",
+        "armchair": "The armchair is yours in the deepest sense. It knows you.",
+        "light": "The light comes from everywhere at once, at the correct intensity, without source or shadow. There are no windows. There is no need for them.",
+        "air": "The air is filtered, warmed, slightly perfumed. You have never breathed anything else. The thought of unfiltered air is theoretical, and vaguely unpleasant.",
+        "room": "A room — your room — the only room you have known or needed. Its dimensions are precisely adequate. Its provisions are complete.",
+        "hexagonal": "Six walls. The geometry was determined long ago, by people whose names are not recorded, as the optimal form for a cell of this purpose. You have never lived in any other shape.",
+        "wall": "Padded at intervals. You have never thought to ask why.",
+        "aperture": "Small openings that admit regulated light. The Book says there are a thousand. You have never counted them.",
+        "padding": "The walls are padded at intervals in a soft material that absorbs sound. The cell is very quiet when the plate is dark.",
+        "_default": "You attend to it. Some things resist the full attention of examination."
+      },
+      "read": {
+        "book": "__PASSAGE:examine_book__",
+        "_default": "There is only one book worth reading."
+      },
+      "use": {
+        "plate": "__FLAG:plate_activated|You touch the speaking plate. The amber deepens. A moment of connection-hum — and then the face of your son, Kuno, appears. He looks different to what the plate usually transmits. His eyes carry something you cannot immediately name.__",
+        "speaking plate": "__FLAG:plate_activated|You touch the speaking plate. The amber deepens. A moment of connection-hum — and then the face of your son, Kuno, appears. He looks different to what the plate usually transmits. His eyes carry something you cannot immediately name.__",
+        "_default": "The Machine provides the means. You use what is appropriate."
+      },
+      "talk": {
+        "kuno": "__IF:plate_activated|__PASSAGE:kuno_first_words__|__FLAG:plate_activated|You activate the plate. Kuno\u2019s face appears, bearing that quality you could not name.|__",
+        "_default": "__IF:plate_activated|__PASSAGE:kuno_first_words__|__FLAG:plate_activated|You activate the plate. Kuno\u2019s face appears.|__"
+      },
+      "wait": {
+        "_default": "__IF:plate_activated|__PASSAGE:kuno_first_words__|After a long moment \u2014 without your having touched the controls \u2014 the plate illuminates. Kuno\u2019s face appears.__"
+      },
+      "_fallback": [
+        "The room contains what it has always contained. The plate pulses amber.",
+        "The pulse of the plate is patient. It is waiting for your attention.",
+        "The speaking plate is asking for you. You could use it, or simply touch it."
+      ]
+    }
+  },
+
+  "examine_book": {
+    "_passage_only": true,
+    "on_enter": "__IMAGE:book_reverenced.jpg|The Book of the Machine. Ninth edition. It contains instructions for summoning food, adjusting temperature, producing music, communicating with the Mending Apparatus. It contains explanations of all things. Certain passages have grown soft with use. You have read it all your life. It does not occur to you that this is anything other than education.",
+    "actions": {
+      "read": {
+        "_default": "You open it at random. A passage on the correct adjustment of atmospheric composition in cells of non-standard dimensions. You close it. You know what it says."
+      },
+      "use": {
+        "music": "You consult the section on music. There is a procedure. You follow it. Music arrives, correct and adequate.",
+        "food": "You consult the section on food. A meal is summoned. It arrives at the usual aperture, at the usual temperature.",
+        "_default": "The Book describes the procedure. You are capable of following it."
+      },
+      "produce": {
+        "music": "You consult the relevant passage and follow the procedure. Music arrives, as it always arrives, from the correct aperture.",
+        "_default": "The Book contains the procedure for most things. You consult it and follow accordingly."
+      },
+      "examine": {
+        "book": "You are already examining it.",
+        "_default": "In the Book, all things are described in terms of their procedure."
+      },
+      "go": { "_default": "__TRANSITION:vashti_cell__" },
+      "look": { "_default": "Page after page of orderly instruction. The world, made navigable." },
+      "_fallback": "The Book does not speak to that. You close it and return your attention to the room."
+    }
+  },
+
+  "kuno_first_words": {
+    "_passage_only": true,
+    "on_enter": "__IMAGE:plate_active.jpg|\u2018I want you to come and see me.\u2019 The words arrive with unusual directness. Kuno lives on the other side of the world. You have not visited anyone in eleven years. The idea of travel is generally regarded as a primitive impulse \u2014 something the Machine has relieved us of. \u2018I can speak to you now,\u2019 you say. \u2018The plate carries everything.\u2019 \u2018Not this,\u2019 he says. \u2018Come in person, mother.\u2019 The word body is about to be spoken. You can feel it forming. \u2018The ideas expressed by the word body \u2014\u2019 you begin. \u2018Yes,\u2019 says Kuno.",
+    "actions": {
+      "talk": {
+        "why": "__PASSAGE:kuno_why__",
+        "kuno": "__PASSAGE:kuno_why__",
+        "no": "__PASSAGE:kuno_refuse__",
+        "refuse": "__PASSAGE:kuno_refuse__",
+        "_default": "__PASSAGE:kuno_why__"
+      },
+      "look": {
+        "_default": "Kuno\u2019s face in the plate. He is waiting. He has an expression you have not seen transmitted before \u2014 or perhaps you have, and did not attend to it."
+      },
+      "examine": {
+        "kuno": "He looks at you with an attention the plate does not quite mediate away. His question is still in his expression.",
+        "_default": "The plate occupies your attention. Kuno is in it, waiting."
+      },
+      "wait": { "_default": "Kuno waits. He is patient in a way that will, eventually, require an answer." },
+      "go": { "_default": "He is still speaking. You have not yet answered." },
+      "_fallback": "Kuno watches you through the plate. His request remains between you."
+    }
+  },
+
+  "kuno_why": {
+    "_passage_only": true,
+    "on_enter": "\u2018Why?\u2019 you ask. \u2018I have seen something. I cannot transmit it through the plate. It is \u2014 the plate does not carry it.\u2019 A pause. \u2018Also, I may be made Homeless soon.\u2019 The word settles in the cell air. Homelessness: the most absolute of sanctions. To be expelled from the system. Cut off. You have never known anyone threatened with it. \u2018What have you done?\u2019 \u2018Come and see me,\u2019 he says. \u2018Come to me, and I will tell you everything.\u2019",
+    "flags_set_on_enter": ["knows_threat"],
+    "actions": {
+      "talk": {
+        "kuno": "__PASSAGE:kuno_press__",
+        "why": "__PASSAGE:kuno_press__",
+        "_default": "__PASSAGE:kuno_press__"
+      },
+      "look": {
+        "_default": "Kuno\u2019s face in the plate. The word Homeless is still in the air between you."
+      },
+      "examine": {
+        "kuno": "His expression is one you do not have a name for. He is not afraid, which is itself alarming.",
+        "_default": "The plate transmits his face. What it cannot transmit is what his face contains."
+      },
+      "go": {
+        "kuno": "__TRANSITION:preparing_travel__",
+        "_default": "You are not ready to close the call. Something in his voice requires more of you."
+      },
+      "wait": { "_default": "__PASSAGE:kuno_press__" },
+      "_fallback": "The word Homeless remains in the air. Kuno waits."
+    }
+  },
+
+  "kuno_press": {
+    "_passage_only": true,
+    "on_enter": "You press him. He will not say more through the plate. \u2018The Machine,\u2019 he says quietly, \u2018cannot transmit this.\u2019 There is something in this statement that you find, for reasons you cannot satisfactorily examine, faintly irritating. You say so. He listens. \u2018Yes,\u2019 he says. \u2018That is what I thought you would feel. Come and see me anyway.\u2019",
+    "actions": {
+      "talk": {
+        "kuno": "__TRANSITION:decision_travel__",
+        "_default": "He will not be pressed further through the plate. The call has reached its limit."
+      },
+      "look": { "_default": "Kuno\u2019s face in the plate. Patient. His answer is already given." },
+      "examine": { "_default": "What the plate transmits is less than what is there. He has said what he will say through it." },
+      "wait": { "_default": "A silence opens between you. It is not an uncomfortable silence. It is a waiting one." },
+      "go": { "_default": "__TRANSITION:decision_travel__" },
+      "_fallback": "He has said what he will say through the plate. The question is yours now."
+    }
+  },
+
+  "kuno_refuse": {
+    "_passage_only": true,
+    "on_enter": "You tell him you will not come. Travel is inconvenient and unnecessary. The plate provides everything. The words feel correct as you say them. But something in Kuno\u2019s expression \u2014 not transmitted with full fidelity through the plate, and yet present \u2014 makes you hesitate before you close the channel.",
+    "actions": {
+      "talk": {
+        "kuno": "__PASSAGE:kuno_why__",
+        "_default": "__PASSAGE:kuno_why__"
+      },
+      "look": { "_default": "Kuno\u2019s face. That expression. You have not closed the channel yet." },
+      "examine": { "_default": "What his expression contains, the plate cannot quite name for you. Something asks to be looked at more closely." },
+      "wait": { "_default": "You do not close the channel. The hesitation continues." },
+      "go": { "_default": "__TRANSITION:decision_travel__" },
+      "_fallback": "The channel is still open. He is still there. You have not quite finished."
+    }
+  },
+
+  "decision_travel": {
+    "image": "cell_normal.jpg",
+    "act": "Part One \u2014 The Air-Ship",
+    "title": "The Cell",
+    "on_enter": "The plate has dimmed. Kuno\u2019s face is gone. You are alone in your cell. The question he has placed here \u2014 come to me, in person, across the world \u2014 sits in the filtered air. You have not physically moved from this room, beyond the prescribed exercises, in eleven years. The Machine provides. And yet.",
+    "actions": {
+      "use": {
+        "plate": "__FLAG:plate_activated|You activate the speaking plate. Kuno\u2019s face does not appear. The connection you made earlier has closed. The cell is quiet, and the question he left in it remains.__",
+        "_default": "The Machine provides what is needed."
+      },
+      "read": {
+        "book": "You open the Book. The relevant section \u2014 on travel, on the provision for physical visits \u2014 is brief. The Machine regards prolonged displacement as a residual primitive behaviour, now largely superseded. You close it. The question remains.",
+        "_default": "There is only one book worth reading."
+      },
+      "open": {
+        "book": "You open the Book. The travel provisions are brief and clear. The arrangement, the Book suggests, is straightforward. You close it.",
+        "_default": "The cell is as it was."
+      },
+      "go": {
+        "kuno": "__TRANSITION:preparing_travel__",
+        "airship": "__TRANSITION:preparing_travel__",
+        "out": "__TRANSITION:preparing_travel__",
+        "_default": "Where would you go? The cell is sufficient. Except for the question Kuno has left in it."
+      },
+      "examine": {
+        "plate": "The plate is dim. The connection has closed. Kuno is elsewhere, waiting.",
+        "room": "The cell is unchanged. You are slightly less unchanged.",
+        "_default": "The room presents its ordinary face."
+      },
+      "look": {
+        "_default": "Everything is in its place. The Book. The chair. The plate, dimmed. The air. And beyond the walls \u2014 if beyond is a meaningful concept here \u2014 the corridors, the platforms, the world that the Machine administers."
+      },
+      "wait": {
+        "_default": "You wait. The cell waits with you. It is, in its way, endlessly patient."
+      },
+      "think": {
+        "_default": "You think about Kuno. About Homelessness, and what it would mean for him. About the concept of visiting. About whether the body \u2014 the idea expressed by that word \u2014 is truly as irrelevant as the Book suggests. You find yourself uncertain, which is unusual."
+      },
+      "_fallback": [
+        "The Machine hums. The decision sits in the room with you.",
+        "The plate is dim. Kuno is elsewhere, waiting for an answer you have not given.",
+        "You could go to him. The arrangement is simple — the Book describes how to request a vessel. Or you could remain. Both options are available."
+      ]
+    }
+  },
+
+  "preparing_travel": {
+    "image": "cell_restless.jpg",
+    "act": "Part One \u2014 The Air-Ship",
+    "title": "The Cell \u2014 Preparations",
+    "on_enter": "You consult the Book. Travel is discouraged but remains within provision. You submit a request through the speaking plate. The arrangement is confirmed within the hour: a vessel to Kuno\u2019s hemisphere, departing from the nearest platform. The simplicity of the arrangement surprises you. You have been capable of this the entire time.",
+    "flags_set_on_enter": ["decided_to_travel"],
+    "actions": {
+      "take": {
+        "book": "__INVENTORY:add:book_of_machine|You take the Book of the Machine. Its weight in your hands is a known and reassuring thing.__",
+        "_default": "The Machine provides whatever you require at your destination."
+      },
+      "examine": {
+        "book": "The section on travel is brief. The Machine regards prolonged physical displacement as a residual primitive behaviour, now largely superseded.",
+        "_default": "Your preparations are minimal. The Machine handles the rest."
+      },
+      "go": {
+        "corridor": "__TRANSITION:corridor__",
+        "airship": "__TRANSITION:corridor__",
+        "out": "__TRANSITION:corridor__",
+        "platform": "__TRANSITION:corridor__",
+        "_default": "__TRANSITION:corridor__"
+      },
+      "wait": {
+        "_default": "The arrangement is made. The time approaches."
+      },
+      "_fallback": "__TRANSITION:corridor__"
+    }
+  },
+
+  "corridor": {
+    "image": "corridor.jpg",
+    "act": "Part One \u2014 The Air-Ship",
+    "title": "The Corridor",
+    "on_enter": "The corridor is a long soft-lit tube. Other passengers move within it, all without acknowledgement \u2014 this is correct form. You are aware of their presence as an abstraction: human warmth, mediated by distance and the tacit agreement not to look directly. You have not been among this many bodies, physically, in years. The air here is the same air as the cell, but larger somehow. It moves.",
+    "flags_set_on_enter": ["in_corridor"],
+    "actions": {
+      "look": {
+        "_default": "The corridor extends in both directions. Ahead, a suggestion of cooler air — the platform. Other passengers maintain their inner attention, moving without making eye contact. The walls pulse gently.",
+        "people": "You do not look at them directly. It is not done. But one figure, near the far wall, has paused. Their hand is pressed flat against the padding. They are not moving. They appear to be listening to the wall.",
+        "wall": "The walls are padded at intervals. The padding, the Book notes, was installed not for comfort but to prevent injury during the Lighting Up, whatever that was."
+      },
+      "examine": {
+        "attendant": "The attendant moves at a slight distance ahead of you, managing your progress. She has the look of someone accustomed to the outside edges of things — faintly different in a way you cannot categorise.",
+        "person": "Before you can look properly, the attendant has moved them along with a word. They go without resistance. Their hand leaves the wall last.",
+        "wall": "You press your own hand against the padding for a moment. It gives slightly. Behind it, very faint: the hum. Always the hum. But something about pressing your hand there makes it feel less abstract.",
+        "_default": "In motion, examination yields less than stillness does."
+      },
+      "talk": {
+        "attendant": "She answers practical questions efficiently and without warmth. You appreciate the efficiency.",
+        "_default": "One does not speak to strangers in corridors. The plate handles necessary communication."
+      },
+      "go": {
+        "airship": "__TRANSITION:airship_cabin__",
+        "platform": "__TRANSITION:airship_cabin__",
+        "forward": "__TRANSITION:airship_cabin__",
+        "_default": "__TRANSITION:airship_cabin__"
+      },
+      "wait": {
+        "_default": "The movement of the corridor carries you. Here, waiting and moving are almost identical."
+      },
+      "_fallback": "The corridor bears you toward the platform. There is no reason to resist this."
+    }
+  },
+
+  "airship_cabin": {
+    "image": "airship_peaceful.jpg",
+    "act": "Part One \u2014 The Air-Ship",
+    "title": "The Air-Ship",
+    "on_enter": "The cabin is tolerably dark. You settle into your assigned berth. Through the walls \u2014 thin, and you try not to think about their thinness \u2014 the sound of engines. You are moving. High above the surface of the world. The thought arrives: there is nothing between you and the ground but air. You set the thought aside. The cabin has all amenities. You have your Book.",
+    "actions": {
+      "look": {
+        "_default": "A small, well-appointed berth. A blind covers the porthole to your left. The other passengers maintain their inner attention, silent in adjacent berths. The light is amber and dim, like home.",
+        "blind": "A heavy rectangular blind covers the porthole entirely. Light attempts its edges.",
+        "porthole": "The blind is closed. You see nothing through it.",
+        "passengers": "The other passengers are correctly self-contained. No one looks out."
+      },
+      "examine": {
+        "blind": "The blind is made of substantial material. It slides on a runner. You could open it.",
+        "porthole": "The blind is down. You have not looked out of a real window \u2014 at the actual sky \u2014 in a very long time. The Book counsels against prolonged exposure to unfiltered light.",
+        "_default": "The cabin is sufficiently familiar that examination yields little new."
+      },
+      "open": {
+        "blind": "__FLAG:saw_outside|__IMAGE:airship_blind.jpg|Your fingers find the edge of the blind and draw it back. The light that enters is of a quality entirely unlike the light you know — vast, sourceless, indifferent to you. Below, at an incomprehensible distance, the surface of the world extends: browns, greens, textures that the plate has never transmitted with this fidelity. A passenger nearby makes a small involuntary sound. You feel something that does not have a name in the vocabulary the Machine has given you. The attendant appears at your elbow. 'Kindly close it,' she says, without reproach. 'Others are affected.'|__",
+        "_default": "There is nothing here requiring opening."
+      },
+      "close": {
+        "blind": "__IMAGE:airship_peaceful.jpg|You close the blind. The amber dark returns. Something in you is doing something that it has not done before. You hold the Book more firmly.__",
+        "_default": "Already closed."
+      },
+      "use": {
+        "blind": "__FLAG:saw_outside|__IMAGE:airship_blind.jpg|You slide the blind open. The light that enters is of a quality entirely unlike the light you know — vast, sourceless, indifferent to you. Below, at an incomprehensible distance, the surface of the world extends. The attendant appears. 'Kindly close it.'|__",
+        "_default": "The Machine provides what is needed."
+      },
+      "read": {
+        "book": "__FLAG:read_on_airship|You read during the crossing. The familiar passages are calming. But you find yourself, once, reading the same paragraph four times \u2014 and each time, on finishing, unable to recall what it said.__",
+        "_default": "There is only one book."
+      },
+      "go": {
+        "kuno": "__TRANSITION:kuno_cell__",
+        "forward": "__TRANSITION:kuno_cell__",
+        "_default": "The airship is moving. Kuno is at the end of this."
+      },
+      "wait": {
+        "_default": "You wait as the world passes beneath you, unseen."
+      },
+      "_fallback": "The engines carry you. Kuno is at the end of this."
+    }
+  },
+
+  "kuno_cell": {
+    "image": "kuno_cell.jpg",
+    "act": "Part One \u2014 The Air-Ship",
+    "title": "Kuno\u2019s Cell",
+    "on_enter": "His room is identical to yours. Of course it is \u2014 all rooms are the same. But Kuno is not identical to what the plate transmits. He is larger, somehow. More present. He stands in the centre of the floor rather than at the speaking plate. \u2018Mother.\u2019 He looks at you with his eyes, directly, without any intermediary. You find this \u2014 difficult to characterise. Uncomfortable, perhaps. Or the opposite of uncomfortable, which is worse.",
+    "flags_set_on_enter": ["arrived_at_kuno"],
+    "actions": {
+      "look": {
+        "_default": "The cell is identical to yours. And yet it is different, and the difference is Kuno, standing in it with an unmediated attention you are not accustomed to receiving.",
+        "kuno": "He is watching you. Not through apparatus. Directly. It is, you find, very different."
+      },
+      "examine": {
+        "kuno": "He is broader than the plate suggested. His hands rest without occupation at his sides. He seems \u2014 the word arrives without permission \u2014 rooted.",
+        "_default": "The room offers nothing your own does not contain."
+      },
+      "talk": {
+        "kuno": "__PASSAGE:kuno_tells__",
+        "_default": "__PASSAGE:kuno_tells__"
+      },
+      "wait": { "_default": "__PASSAGE:kuno_tells__" },
+      "_fallback": "__PASSAGE:kuno_tells__"
+    }
+  },
+
+  "kuno_tells": {
+    "_passage_only": true,
+    "on_enter": "__IMAGE:kuno_cell_conversation.jpg|\u2018I have been to the surface.\u2019 He says it plainly. \u2018I found a route through the ventilation shafts. I went out. I breathed the air \u2014 outside air, unfiltered, directly.\u2019 He watches your face as though your response is what he has come here to see. The appropriate responses are available to you: alarm, disapproval, a reminder of the Committee\u2019s provisions. They are all present. Beneath them is something else that you do not yet have a name for.",
+    "flags_set_on_enter": ["knows_surface"],
+    "actions": {
+      "talk": {
+        "how": "__PASSAGE:kuno_detail__",
+        "what": "__PASSAGE:kuno_detail__",
+        "surface": "__PASSAGE:kuno_detail__",
+        "why": "__PASSAGE:kuno_why_surface__",
+        "kuno": "__PASSAGE:kuno_detail__",
+        "_default": "__PASSAGE:kuno_detail__"
+      },
+      "wait": { "_default": "__PASSAGE:kuno_detail__" },
+      "_fallback": "__PASSAGE:kuno_detail__"
+    }
+  },
+
+  "kuno_detail": {
+    "_passage_only": true,
+    "on_enter": "\u2018The sky,\u2019 he says. \u2018Do you know \u2014 did you ever consider \u2014 that the sky has no ceiling? It simply extends. It goes on.\u2019 You sit in his armchair; he in his. For a moment the conversation has the quality of a plate call \u2014 and then it does not, because he is here, and the words arrive without compression or loss. \u2018There were hills. Green \u2014 but the word doesn\u2019t carry it. The plate has never transmitted that green. And something living, that moved away from me when I came near. I think it was afraid of me.\u2019 He pauses. \u2018I think I was afraid of it. It was the first real thing I had been afraid of.\u2019",
+    "actions": {
+      "talk": {
+        "kuno": "__PASSAGE:kuno_homeless_threat__",
+        "afraid": "__PASSAGE:kuno_homeless_threat__",
+        "_default": "__PASSAGE:kuno_homeless_threat__"
+      },
+      "wait": { "_default": "__PASSAGE:kuno_homeless_threat__" },
+      "_fallback": "__PASSAGE:kuno_homeless_threat__"
+    }
+  },
+
+  "kuno_why_surface": {
+    "_passage_only": true,
+    "on_enter": "\u2018Because,\u2019 he says, \u2018I wished to know whether the old stories were true. The stories about light, and distance, and things that were not made.\u2019 He meets your eyes. \u2018The Machine made us, Vashti. But the Machine was made. I wanted to know \u2014 by what. Or for what.\u2019",
+    "actions": {
+      "talk": { "_default": "__PASSAGE:kuno_homeless_threat__" },
+      "wait": { "_default": "__PASSAGE:kuno_homeless_threat__" },
+      "_fallback": "__PASSAGE:kuno_homeless_threat__"
+    }
+  },
+
+  "kuno_homeless_threat": {
+    "_passage_only": true,
+    "on_enter": "He has been reported. He does not know who informed the Committee. The charge is attempting to experience the world first-hand, which falls under the provision against unmechanised living. The judgement, when it comes, will determine whether he is to be made Homeless. He speaks of this with a calm that troubles you more than distress would have. \u2018You are not afraid,\u2019 you say. It is not quite a question. \u2018I am trying not to be,\u2019 he says. \u2018Come and see the shafts before you go. I want to show you something.\u2019",
+    "flags_set_on_enter": ["knows_full_story"],
+    "actions": {
+      "talk": {
+        "shafts": "__PASSAGE:vashti_decision_look__",
+        "yes": "__PASSAGE:vashti_decision_look__",
+        "no": "__PASSAGE:vashti_refuses_shafts__",
+        "kuno": "__PASSAGE:vashti_decision_look__",
+        "_default": "__PASSAGE:vashti_decision_look__"
+      },
+      "go": {
+        "shafts": "__PASSAGE:vashti_decision_look__",
+        "_default": "__PASSAGE:vashti_decision_look__"
+      },
+      "wait": { "_default": "__PASSAGE:vashti_decision_look__" },
+      "_fallback": "__PASSAGE:vashti_decision_look__"
+    }
+  },
+
+  "vashti_decision_look": {
+    "_passage_only": true,
+    "on_enter": "__IMAGE:kuno_cell_shaft.jpg|He leads you to a section of wall that appears identical to every other section of wall. But when he presses it in a particular sequence, a panel shifts. Behind it: a duct. Real darkness, not the amber of the Machine. From within it \u2014 very faint, almost imagined \u2014 the suggestion of air that has not been filtered. You stand at the entrance. Kuno says nothing.",
+    "actions": {
+      "go": {
+        "in": "__FLAG:looked_in_shaft|You lean forward and look in. The dark is absolute. But the air that meets your face is different. Cool. Carrying something that is not the Machine's warmth. You pull back quickly. You are not sure why.__",
+        "shaft": "__FLAG:looked_in_shaft|You lean forward and look in. The dark is absolute. But the air that meets your face is different. Cool. Carrying something that is not the Machine's warmth. You pull back quickly.__",
+        "out": "__TRANSITION:departure__",
+        "back": "__TRANSITION:departure__",
+        "_default": "The shaft is here. The corridor is behind you. Those are the two directions available."
+      },
+      "examine": {
+        "shaft": "__FLAG:looked_in_shaft|The inside of the shaft is rough, unpadded \u2014 a functional passage, not an inhabited space. Dark. And that air.__",
+        "duct": "__FLAG:looked_in_shaft|The inside of the shaft is rough, unpadded. Dark. And that air.__",
+        "panel": "The panel is back in place, its seam invisible. Kuno presses it again to keep it open.",
+        "kuno": "He is watching you look at the shaft. He does not prompt you.",
+        "air": "You breathe in. The air from the shaft is faintly different \u2014 cooler, less treated. It carries something the cell air does not.",
+        "_default": "You attend to what is here: the open panel, the dark duct, the air that moves within it."
+      },
+      "look": {
+        "shaft": "__FLAG:looked_in_shaft|You lean forward and look in. The dark is absolute. But the air that meets your face is different.__",
+        "duct": "__FLAG:looked_in_shaft|You look into the duct. Dark, rough-walled. That air.__",
+        "kuno": "He stands beside the open panel. He has done what he intended to do. The rest is yours.",
+        "_default": "The open panel. The dark shaft behind it. Kuno beside you, saying nothing. These are the things in the room."
+      },
+      "wait": { "_default": "You stand at the entrance. Kuno waits. The air from the shaft arrives in slow pulses." },
+      "enter": {
+        "_default": "__FLAG:looked_in_shaft|You lean into the opening. The dark is absolute and the air is different \u2014 cool, carrying something unfiltered. You do not go further. But you have been in it, briefly.__"
+      },
+      "breathe": {
+        "_default": "__FLAG:looked_in_shaft|You breathe in, deliberately. The air from the shaft is cooler than the cell air. Less treated. It carries something you have no name for. You breathe out. The cell air comes back.__"
+      },
+      "touch": {
+        "shaft": "The edge of the opening is rough. Not padded. The material has no decorative treatment \u2014 it is what it is.",
+        "panel": "The panel is smooth on the cell side and raw on the shaft side. Two entirely different surfaces.",
+        "_default": "You reach out. The cell is the cell. The shaft opening is the shaft opening."
+      },
+      "take": { "_default": "There is nothing here to take. There is only the shaft, and what it leads to." },
+      "_fallback": "Kuno has shown you the shaft. He is waiting to see what you do with it."
+    }
+  },
+
+  "vashti_refuses_shafts": {
+    "_passage_only": true,
+    "on_enter": "You tell him you would rather not. The look he gives you is not reproachful \u2014 it is something more difficult to bear than reproach. \u2018All right,\u2019 he says. He closes the panel. You sit together for a while in the room that is identical to your room.",
+    "actions": {
+      "talk": {
+        "kuno": "__TRANSITION:departure__",
+        "_default": "You sit together mostly in silence. What is said is small \u2014 the ordinary traffic of a conversation between people who are not yet saying what they mean."
+      },
+      "look": { "_default": "His cell. Your cell\u2019s twin. The closed panel, invisible in the wall. Kuno sitting in his armchair." },
+      "examine": {
+        "kuno": "He is not looking at you with disappointment. It is something else. Something that waits.",
+        "panel": "The panel is closed. The seam is invisible. You would not know it was there.",
+        "_default": "The room. His room. The same room."
+      },
+      "wait": { "_default": "You sit. Time passes in the way it passes in cells. The panel remains closed." },
+      "go": { "_default": "__TRANSITION:departure__" },
+      "_fallback": "The panel is closed. Kuno sits. The visit is nearly over."
+    }
+  },
+
+  "departure": {
+    "image": "airship_peaceful.jpg",
+    "act": "Part One \u2014 The Air-Ship",
+    "title": "The Return",
+    "on_enter": "You leave the next day. The return journey is identical to the outward one: the corridor, the berth, the amber dark, the closed blind. But something has shifted, slightly, in the arrangement of things inside you. It is small. Like a sound heard once, not well, and then impossible to un-hear. Kuno\u2019s cell grows distant. Your own cell draws near. You find yourself thinking, without cause, about the colour green.",
+    "flags_set_on_enter": ["act_one_complete"],
+    "actions": {
+      "open": {
+        "blind": "__IMAGE:airship_night.jpg|This time you open it without being asked, and for longer. The surface below is dark \u2014 it is night in this part of the world. You can see nothing. But the darkness outside the porthole is a different darkness to the darkness of the cabin, and you know this now in a way you did not know it before.__",
+        "_default": "The cabin is as it was."
+      },
+      "look": {
+        "blind": "The blind is closed. On the outward journey you opened it briefly. You remember the quality of the light.",
+        "_default": "The cabin. Your berth. The closed blind. The Book in your hands."
+      },
+      "go": {
+        "home": "__TRANSITION:vashti_cell_return__",
+        "cell": "__TRANSITION:vashti_cell_return__",
+        "_default": "__TRANSITION:vashti_cell_return__"
+      },
+      "wait": { "_default": "__TRANSITION:vashti_cell_return__" },
+      "read": { "_default": "__FLAG:read_on_return|You read. The familiar passages do not quite do what they usually do.__" },
+      "_fallback": "__TRANSITION:vashti_cell_return__"
+    }
+  },
+
+  "vashti_cell_return": {
+    "image": "cell_restless.jpg",
+    "act": "Part Two \u2014 The Machine Stops",
+    "title": "The Cell",
+    "on_enter": "Home. The cell receives you as it always has \u2014 correct temperature, correct light, correct air. The Book on the desk. The speaking plate glowing with accumulated messages. And the armchair, which knows you. You sit in it. You are aware, for the first time, of the distance between one wall and the other.",
+    "flags_set_on_enter": ["act_two_begins"],
+    "actions": {
+      "look": {
+        "_default": "The cell. Your cell. Every surface known. Every aperture familiar. The distance between the walls is the same distance it has always been.",
+        "plate": "The speaking plate carries forty-seven messages. The ordinary weight of connection.",
+        "book": "The Book sits where it always sits. You notice, for the first time, a faint discolouration on its cover."
+      },
+      "examine": {
+        "book": "__PASSAGE:book_discolouration__",
+        "plate": "Forty-seven messages. You begin to work through them. After the third, you find yourself distracted.",
+        "bath": "__PASSAGE:mending_delayed__",
+        "music": "The music is playing — the usual selection. You listen. It is correct. You believe it is correct.",
+        "_default": "The room is as it was. You are slightly less as you were."
+      },
+      "use": {
+        "plate": "__PASSAGE:messages__",
+        "bath": "__PASSAGE:mending_delayed__",
+        "_default": "The Machine provides."
+      },
+      "talk": {
+        "lecture": "__PASSAGE:lecture_given__",
+        "students": "__PASSAGE:lecture_given__",
+        "_default": "The plate is available. There is always someone to speak to."
+      },
+      "give": {
+        "lecture": "__PASSAGE:lecture_given__"
+      },
+      "wait": {
+        "_default": "You sit. The cell hums. The messages accumulate."
+      },
+      "_fallback": "You are home. The question is what this means, now."
+    }
+  },
+
+  "book_discolouration": {
+    "_passage_only": true,
+    "on_enter": "__IMAGE:book_stained.jpg|A stain from the corridor \u2014 something from the padded walls, transferred when the attendant pressed the Book into your hands. It has nothing to do with anything. And yet you find yourself reluctant to clean it. You close the Book and leave the mark where it is.",
+    "flags_set_on_enter": ["noticed_stain"],
+    "actions": {
+      "examine": {
+        "book": "The discolouration is not large. A thumbprint-sized shadow on the lower cover. It is nothing. You look at it for longer than is necessary.",
+        "stain": "It is a small physical fact. Transferred from somewhere to the Book by an unthinking hand. It connects the Book to a place it has not been before.",
+        "_default": "The room is as it was. You are holding the Book."
+      },
+      "look": { "_default": "The cell. The desk. The Book in your hands, with its new mark. The air, arriving." },
+      "read": { "_default": "You open the Book. You read a passage. You close it again. The mark is still there." },
+      "wait": { "_default": "You sit with the Book in your hands. The mark does not change. Neither do you, quite." },
+      "go": { "_default": "__TRANSITION:vashti_cell_return__" },
+      "_fallback": "You set the Book down. The mark faces upward."
+    }
+  },
+
+  "lecture_given": {
+    "_passage_only": true,
+    "on_enter": "You connect to the lecture circuit and announce your topic: the Music of the Australian Period, specifically the transition from mechanical to plate-transmitted composition in the third generation. Forty-three subscribers attend. You speak with the fluency of long practice \u2014 the ideas are familiar, the words arranged correctly. Partway through your third point, a connection drops. Not yours \u2014 a subscriber\u2019s plate, somewhere. The gap in the audience is brief. The lecture continues. But you notice the gap, and you notice that you notice it, and this noticing takes up a small portion of your attention for the remainder of the lecture.",
+    "flags_set_on_enter": ["gave_lecture"],
+    "actions": {
+      "talk": { "_default": "__PASSAGE:lecture_dropped__" },
+      "examine": {
+        "gap": "__PASSAGE:lecture_dropped__",
+        "connection": "__PASSAGE:lecture_dropped__",
+        "subscriber": "__PASSAGE:lecture_dropped__",
+        "_default": "The lecture is finished. What remains is the silence after it."
+      },
+      "wait": { "_default": "__PASSAGE:lecture_dropped__" },
+      "go": { "_default": "__TRANSITION:vashti_cell_return__" },
+      "_fallback": "__PASSAGE:lecture_dropped__"
+    }
+  },
+
+  "lecture_dropped": {
+    "_passage_only": true,
+    "on_enter": "After the lecture, you find the dropped connection in the log. Four seconds. The subscriber\u2019s plate reconnected automatically \u2014 the Mending Apparatus handling it as routine. The subscriber does not mention it in their response. You do not mention it in yours. But you have looked at the log twice now, and a third time would not be looking for information.",
+    "flags_set_on_enter": ["noticed_dropout"],
+    "actions": {
+      "examine": {
+        "log": "Four seconds. No cause given. Routine restoration. This is the kind of thing the Machine handles without needing to be told.",
+        "_default": "The lecture is filed. The log entry remains."
+      },
+      "look": { "_default": "The cell. The plate, quiet now. The log entry still visible." },
+      "wait": { "_default": "__TRANSITION:vashti_cell_return__" },
+      "go": { "_default": "__TRANSITION:vashti_cell_return__" },
+      "_fallback": "__TRANSITION:vashti_cell_return__"
+    }
+  },
+
+  "mending_delayed": {
+    "_passage_only": true,
+    "on_enter": "You summon the bath. The usual process: request through the plate, confirmation, delivery. The confirmation arrives. The bath does not. You wait. You send a second request. The Machine \u2014 after an interval you would describe, if you were in the habit of describing things as wrong, as wrong \u2014 provides. The water is slightly below the correct temperature. You use it anyway. You submit no report. The Book says the Mending Apparatus is self-correcting and requires no intervention. You leave the temperature in the category of things you did not attend to.",
+    "flags_set_on_enter": ["mending_was_late"],
+    "actions": {
+      "examine": {
+        "water": "The water is functional. Slightly cool. The Mending Apparatus will have noted and corrected it by next time.",
+        "bath": "Adequate. Not quite what was requested. You decide you are not sure what was requested.",
+        "_default": "The cell is performing. Mostly."
+      },
+      "use": { "bath": "You use it. The temperature is not quite correct. You do not submit a report.", "_default": "The Machine provides." },
+      "look": { "_default": "The bath. The cell. The light, steady. Everything in its place, at approximately its correct specification." },
+      "wait": { "_default": "The bath cools further. You use it as it is." },
+      "go": { "_default": "__TRANSITION:vashti_cell_return__" },
+      "_fallback": "__TRANSITION:vashti_cell_return__"
+    }
+  },
+
+  "plate_conversations": {
+    "_passage_only": true,
+    "on_enter": "You spend part of the afternoon on the plate \u2014 a colleague responding to your last lecture, a student with a procedural question, two social connections maintaining the correct frequency of contact. During the fourth call, you raise it: the fluctuations. The music. The light. Your colleague listens. \u2018I haven\u2019t noticed anything,\u2019 she says. \u2018The Committee has confirmed it is within parameters.\u2019 You say you know. \u2018Are you well?\u2019 she asks. You say you are. You believe you are.",
+    "flags_set_on_enter": ["raised_fluctuations"],
+    "actions": {
+      "talk": {
+        "colleague": "She was kind. She is not wrong, exactly. The Committee did confirm it.",
+        "kuno": "__PASSAGE:kuno_judgement_call__",
+        "student": "The student was unconcerned. You find this reassuring, and then find your finding-it-reassuring worth attending to.",
+        "_default": "__PASSAGE:plate_anonymous__"
+      },
+      "wait": { "_default": "__PASSAGE:plate_anonymous__" },
+      "listen": { "_default": "__PASSAGE:plate_anonymous__" },
+      "go": { "_default": "__TRANSITION:vashti_cell_return__" },
+      "_fallback": "__PASSAGE:plate_anonymous__"
+    }
+  },
+
+  "plate_anonymous": {
+    "_passage_only": true,
+    "on_enter": "One more call, late in the sequence \u2014 a connection you did not initiate. A voice you do not recognise, faint and slightly distorted, as though the plate is not carrying it cleanly. \u2018It has been wrong for longer than they are saying,\u2019 the voice says. \u2018I have been thinking that for a while.\u2019 A pause. \u2018I thought someone else should know.\u2019 The connection closes before you can respond. You sit with it for some time.",
+    "flags_set_on_enter": ["heard_anonymous_voice"],
+    "actions": {
+      "examine": {
+        "voice": "You did not recognise it. The plate log shows no record of an incoming connection at that time. This is not possible. And yet.",
+        "plate": "The plate shows no record of the call. The log is clean. You have no way to verify what you heard.",
+        "_default": "The cell is quiet. The plate is dark."
+      },
+      "talk": { "_default": "The connection is gone. There is no one to answer." },
+      "look": { "_default": "Your cell. The plate, dark. The evening. The hum." },
+      "listen": { "_default": "The hum. Steady. Underneath it, or not underneath it \u2014 you cannot tell anymore." },
+      "wait": { "_default": "__TRANSITION:vashti_cell_return__" },
+      "go": { "_default": "__TRANSITION:vashti_cell_return__" },
+      "_fallback": "__TRANSITION:vashti_cell_return__"
+    }
+  },
+
+  "messages": {
+    "_passage_only": true,
+    "on_enter": "You work through the messages. Lecture responses, requests, the ordinary traffic of a connected life. In the twenty-third message, a formal notice from the Committee: Kuno\u2019s case has been reviewed. The determination is Homelessness, effective in three months. You read it twice. Then you set it aside and open message twenty-four.",
+    "flags_set_on_enter": ["knows_judgement"],
+    "actions": {
+      "talk": {
+        "kuno": "__PASSAGE:kuno_homeless_notice__",
+        "_default": "__PASSAGE:kuno_homeless_notice__"
+      },
+      "use": { "plate": "__PASSAGE:kuno_homeless_notice__" },
+      "read": { "_default": "You have read the notice twice. The words do not change on a third reading." },
+      "examine": {
+        "notice": "The Committee\u2019s language is precise and without feeling. \u2018The determination is Homelessness.\u2019 The date is given. The provision cited.",
+        "plate": "Forty-seven messages. You have opened twenty-four of them. The notice is the twenty-third.",
+        "_default": "The messages are there. The notice is among them."
+      },
+      "look": { "_default": "The speaking plate. The message queue. The cell, unchanged and waiting." },
+      "wait": { "_default": "The messages remain. The notice is still the twenty-third. Kuno is still three months from Homelessness." },
+      "go": { "_default": "__TRANSITION:vashti_cell_return__" },
+      "_fallback": "The notice from the Committee sits among your ordinary messages. You have not yet decided what to do with it."
+    }
+  },
+
+  "kuno_homeless_notice": {
+    "_passage_only": true,
+    "on_enter": "You sit with the notice. Three months is a specific thing \u2014 it has edges. Appeals are within provision; the Book describes the procedure. You have never appealed anything before. You are not sure what you would appeal to: the language of the notice is not unjust, exactly. It is precise. Kuno went to the surface. The provision is against unmechanised living. The logic is complete. And yet you find yourself opening the appeals form.",
+    "flags_set_on_enter": ["sat_with_notice"],
+    "actions": {
+      "use": {
+        "plate": "__PASSAGE:committee_appeal__",
+        "form": "__PASSAGE:committee_appeal__",
+        "_default": "__PASSAGE:committee_appeal__"
+      },
+      "talk": {
+        "committee": "__PASSAGE:committee_appeal__",
+        "kuno": "__PASSAGE:kuno_judgement_call__",
+        "_default": "__PASSAGE:committee_appeal__"
+      },
+      "examine": {
+        "form": "The form is brief. Name, the name of the person whose case is under review, the grounds. Grounds. You sit with that word.",
+        "notice": "Three months. Then nothing. The Book does not describe what Homelessness is. Only that it is.",
+        "_default": "The notice. The cell. The form, open on the plate."
+      },
+      "look": { "_default": "The message queue. The notice. The appeals form, which you have opened without deciding to open it." },
+      "wait": { "_default": "You wait. The form remains open. The notice remains the twenty-third message." },
+      "go": {
+        "_default": "__IF:attempted_appeal|__PASSAGE:kuno_judgement_call__|You set the notice aside. You will speak to Kuno.__"
+      },
+      "_fallback": [
+        "The form is open. The notice is here. You could appeal, or call Kuno, or set it aside.",
+        "The form asks for grounds. You could give grounds \u2014 use the plate to submit it \u2014 or speak to Kuno directly.",
+        "The form is waiting. Talk to the committee to submit your appeal, or talk to Kuno to call him."
+      ]
+    }
+  },
+
+  "committee_appeal": {
+    "_passage_only": true,
+    "on_enter": "You submit the form. The grounds you give are imprecise \u2014 something about mitigating circumstances, the educational value of direct experience, the longstanding record of the subject. The Committee acknowledges receipt. Three days later, a response arrives: the determination has been reviewed and confirmed. The provisions are clear. Homelessness is, in this case, the appropriate sanction. The response thanks you for your engagement with the system. You read it once. You do not read it again.",
+    "flags_set_on_enter": ["attempted_appeal"],
+    "actions": {
+      "read": { "_default": "The response is as it was on the first reading. Precise. Final." },
+      "examine": {
+        "response": "Three sentences. The determination confirmed. The provision cited. A thank you. The Machine is thorough.",
+        "_default": "The response. The cell. The hum."
+      },
+      "talk": {
+        "kuno": "__PASSAGE:kuno_judgement_call__",
+        "_default": "You could call Kuno. There is no one else to call about this."
+      },
+      "look": { "_default": "The cell. The plate. The response, sitting in your message queue." },
+      "wait": { "_default": "__PASSAGE:kuno_judgement_call__" },
+      "go": { "_default": "__TRANSITION:vashti_cell_return__" },
+      "_fallback": "__PASSAGE:kuno_judgement_call__"
+    }
+  },
+
+  "kuno_judgement_call": {
+    "_passage_only": true,
+    "on_enter": "Kuno\u2019s face appears. He already knows. \u2018Three months,\u2019 he says. \u2018It is not nothing.\u2019 You search for something useful to say. \u2018Will you appeal?\u2019 \u2018No.\u2019 He seems to consider something. \u2018I am not afraid of it. That is what I wanted to tell you. I thought I would be.\u2019 A long pause. \u2018The Machine has been making a sound,\u2019 he says then. \u2018A different sound to the usual. Have you noticed?\u2019 You have not. Or \u2014 you set the thought aside \u2014 you have noticed, and not attended to it.",
+    "flags_set_on_enter": ["heard_of_sound"],
+    "actions": {
+      "talk": {
+        "sound": "__PASSAGE:the_sound__",
+        "machine": "__PASSAGE:the_sound__",
+        "kuno": "__PASSAGE:the_sound__",
+        "_default": "__PASSAGE:the_sound__"
+      },
+      "listen": { "_default": "__PASSAGE:the_sound__" },
+      "wait": { "_default": "__PASSAGE:the_sound__" },
+      "_fallback": "__PASSAGE:the_sound__"
+    }
+  },
+
+  "the_sound": {
+    "_passage_only": true,
+    "on_enter": "After the call ends, you listen. The cell hums \u2014 as it has always hummed. But beneath the hum, or alongside it, there is something: an irregularity, very faint, like a single dropped stitch in an otherwise continuous fabric. It lasts for a moment. Then the hum resumes, uninterrupted. The cell is as it was.",
+    "flags_set_on_enter": ["heard_sound_yourself"],
+    "actions": {
+      "listen": { "_default": "You listen again. The hum is steady. And then \u2014 or perhaps not \u2014 the dropped stitch again. Gone before you can be certain." },
+      "examine": {
+        "sound": "You cannot examine a sound. But you find yourself attending to it more carefully than you have attended to anything in a long time.",
+        "hum": "The hum of the Machine is the ground note of your entire life. You have never listened to it before. It is enormous.",
+        "_default": "The cell is as it was. You are listening to it in a way you have not listened before."
+      },
+      "look": { "_default": "The cell. The plate, dark now. The chair. The air arriving. The hum, underneath everything." },
+      "wait": { "_default": "__TRANSITION:weeks_passing__" },
+      "go": { "_default": "__TRANSITION:weeks_passing__" },
+      "_fallback": "The hum of the Machine fills the cell. Beneath it, or within it, something you have not heard before."
+    }
+  },
+
+  "weeks_passing": {
+    "image": "cell_flickering.jpg",
+    "act": "Part Two \u2014 The Machine Stops",
+    "title": "The Cell \u2014 Later",
+    "on_enter": "Weeks pass. The cell performs its functions. All amenities operate. Except: the music has been slightly wrong for twelve days. Not demonstrably wrong \u2014 a fraction of a tone, an interruption so brief the mind resists registering it. The light has dimmed twice, for a moment, before recovering. You have submitted no report. Others, you gather from plate traffic, are submitting reports. The Committee has issued a notice: minor fluctuations are within acceptable parameters.",
+    "actions": {
+      "examine": {
+        "light": "You watch the light. It is steady. It was steady yesterday. The dimming \u2014 if it occurred \u2014 was very brief.",
+        "music": "You listen to the music. It is correct. Or very close to correct. You are no longer entirely certain what correct sounds like.",
+        "_default": "The room presents its ordinary face."
+      },
+      "look": {
+        "_default": "The cell. The Book. The plate, active with the usual traffic. Everything is here. Everything has always been here. The difference is that you are now incapable of looking at it without looking.",
+        "plate": "Through the speaking plate, occasionally, something else: not a call to you, but a sound \u2014 voices, distant, unclear. Machinery correcting itself."
+      },
+      "listen": { "_default": "The hum continues. You listen for the irregularity. It is there, or it is not there. You cannot be certain." },
+      "use": {
+        "plate": "__PASSAGE:plate_conversations__",
+        "_default": "The Machine provides."
+      },
+      "talk": {
+        "kuno": "__PASSAGE:kuno_last_call__",
+        "colleague": "__PASSAGE:plate_conversations__",
+        "_default": "__PASSAGE:committee_announcement__"
+      },
+      "go": {
+        "corridor": "__IMAGE:corridor_failing.jpg|__FLAG:noticed_corridor_air|You step out into the corridor. The air there is different \u2014 not wrong exactly, but less managed. Slightly cooler. Less certain of itself. You stand in it for a moment, then return to your cell. The difference stays with you.__",
+        "outside": "__IMAGE:corridor_failing.jpg|__FLAG:noticed_corridor_air|You step into the corridor briefly. The air moves differently out there. You return to your cell. Something has shifted, slightly, in how the room feels to you now.__",
+        "_default": "The cell is where you are. The corridor is outside."
+      },
+      "wait": { "_default": "__PASSAGE:committee_announcement__" },
+      "_fallback": [
+        "The cell performs its functions. Mostly.",
+        "The music is still slightly wrong. The light holds steady. The plate carries its usual traffic. You attend to these things more carefully than you used to.",
+        "You could use the plate \u2014 contact Kuno, or listen to the channel traffic. Or go briefly into the corridor. Or simply listen to the room."
+      ]
+    }
+  },
+
+  "committee_announcement": {
+    "_passage_only": true,
+    "on_enter": "A general announcement through all speaking plates simultaneously: the Central Committee wishes to reassure residents that all reported fluctuations fall within parameters established in Appendix Seven of the Book of the Machine. The Mending Apparatus is functioning. There is no cause for concern. The announcement is delivered three times, at intervals, in the same calm authoritative tone. You notice that it is delivered three times.",
+    "actions": {
+      "talk": {
+        "kuno": "__PASSAGE:kuno_last_call__",
+        "_default": "__PASSAGE:kuno_last_call__"
+      },
+      "go": { "_default": "__TRANSITION:weeks_passing__" },
+      "_fallback": "__PASSAGE:kuno_last_call__"
+    }
+  },
+
+  "kuno_last_call": {
+    "_passage_only": true,
+    "on_enter": "Kuno contacts you. His image through the plate is clear, but his face carries something that the plate renders as interference and you understand is not. \u2018It is beginning,\u2019 he says. \u2018The Machine is ceasing. Not failing \u2014 ceasing.\u2019 You tell him what the Committee has said. \u2018The Committee,\u2019 he says, and nothing further on the subject. \u2018When it stops \u2014 come toward the ventilation shafts. Come to where I showed you. Come, if you can.\u2019 The plate goes dark. Not the dark of a closed connection. A different dark.",
+    "flags_set_on_enter": ["kuno_final_message"],
+    "actions": {
+      "use": { "plate": "__PASSAGE:plate_failing__" },
+      "talk": { "_default": "__PASSAGE:plate_failing__" },
+      "wait": { "_default": "__PASSAGE:plate_failing__" },
+      "_fallback": "__PASSAGE:plate_failing__"
+    }
+  },
+
+  "plate_failing": {
+    "_passage_only": true,
+    "on_enter": "__IMAGE:plate_static.jpg|You attempt to re-establish the connection. The plate illuminates \u2014 but what forms is not a call to Kuno. Multiple voices occupy the channel, unclear and overlapping. Someone reciting from the Book. Someone weeping. Something that might be a Committee announcement, looping. The plate dims. Brightens. Dims again.",
+    "flags_set_on_enter": ["machine_failing"],
+    "actions": {
+      "listen": { "_default": "__PASSAGE:plate_static__" },
+      "use": { "plate": "__PASSAGE:plate_static__" },
+      "examine": { "plate": "__PASSAGE:plate_static__", "voice": "__PASSAGE:plate_static__", "_default": "The plate dims and brightens. Its light is wrong." },
+      "go": { "_default": "__TRANSITION:machine_stops__" },
+      "wait": { "_default": "__TRANSITION:machine_stops__" },
+      "_fallback": "__TRANSITION:machine_stops__"
+    }
+  },
+
+  "plate_static": {
+    "_passage_only": true,
+    "on_enter": "You hold the channel open and listen past the noise. The weeping. The recitation. The looping announcement. And beneath these, something else \u2014 a single voice, speaking in a clear and ordinary tone, as though to someone nearby. You cannot make out the words. The voice is not distressed. It is simply speaking, to someone, in the dark. You listen until the plate goes entirely dark. You do not know whose voice it was. You will not know.",
+    "flags_set_on_enter": ["heard_the_voice"],
+    "actions": {
+      "listen": { "_default": "The plate is dark now. There is nothing more on the channel." },
+      "examine": { "_default": "The plate is dark. Its surface reflects nothing." },
+      "go": { "_default": "__TRANSITION:machine_stops__" },
+      "wait": { "_default": "__TRANSITION:machine_stops__" },
+      "_fallback": "__TRANSITION:machine_stops__"
+    }
+  },
+
+  "machine_stops": {
+    "image": "cell_dark.jpg",
+    "act": "Part Three \u2014 Homeless",
+    "title": "The Cell \u2014 Darkness",
+    "on_enter": "The hum stops. Not a flicker, not a dimming \u2014 it stops. The light does not diminish; it ends. The air, which has been arriving since before you were born, does not arrive. The silence is of a kind for which you have no category. In the absolute dark of a room that has been continuously lit for your entire life, you sit in your armchair, and the only question is: what are you, here, without the Machine to answer it.",
+    "flags_set_on_enter": ["machine_stopped"],
+    "_wait_sequence": [
+      "You wait. The armchair is still the armchair. The cell is still the cell. These things do not require the Machine.",
+      "The air is thicker now. Not unbreathable. Not yet. The dark is the same dark. You have been in this chair your entire life.",
+      "The Book is on the desk. You know this because you know the desk. You do not need light to know where everything is. Everything is here. Everything has always been here.",
+      "The air is very still. Your breathing has become the loudest thing in the world. The cell holds you. It has always held you."
+    ],
+    "actions": {
+      "look": { "_default": "There is nothing to see. The dark is absolute." },
+      "examine": { "_default": "You reach out your hands. The chair is there. The walls. The floor. You. These things remain." },
+      "touch": { "_default": "You reach out your hands. The chair is there. The walls. The floor. You. These things remain." },
+      "feel": { "_default": "You reach out your hands. The chair is there. The walls. The floor. You. These things remain." },
+      "use": { "_default": "Nothing responds. The controls are inert. The Machine has stopped." },
+      "read": { "_default": "You cannot read. There is no light. The Book is on the desk in the dark, exactly where it has always been." },
+      "take": { "book": "__INVENTORY:add:found_book|You take the Book from the desk. You cannot read it. You hold it anyway.__" },
+      "wait": { "_default": "__WAIT_GATE:5|__GAMEOVER:compliant_death__" },
+      "go": {
+        "out": "__TRANSITION:corridor_dark__",
+        "corridor": "__TRANSITION:corridor_dark__",
+        "kuno": "__TRANSITION:corridor_dark__",
+        "surface": "__TRANSITION:corridor_dark__",
+        "_default": "__TRANSITION:corridor_dark__"
+      },
+      "_fallback": [
+        "The dark is complete. The air is still. You could stay, or you could go.",
+        "The cell waits with you. The corridor is outside. The air is thicker than it was.",
+        "The air is noticeably thin now. The cell is very quiet. You could wait here, or go out into the corridor."
+      ]
+    }
+  },
+
+  "corridor_dark": {
+    "image": "corridor_dark.jpg",
+    "act": "Part Three \u2014 Homeless",
+    "title": "The Corridor",
+    "on_enter": "You go out into the corridor. It is dark but not lightless \u2014 a residual phosphorescence from the walls, slowly failing. People move in it. Some sit against the walls. Some are very still. The Book of the Machine lies open on the floor near a figure that has stopped moving \u2014 its pages white in the fading glow. From somewhere far above: the sound of air. Real air, moving through something it was not designed to move through. And from somewhere ahead, further in: voices.",
+    "actions": {
+      "look": {
+        "_default": "People. The walls faintly luminous. Above \u2014 a different darkness, open rather than enclosed. Ahead \u2014 deeper into the corridor, voices of some kind.",
+        "people": "You do not look closely. Some are reciting from the Book. Some are still.",
+        "book": "Someone\u2019s Book lies open on the floor. The pages are very white. You step around it.",
+        "air": "From above. Not from the vents \u2014 from something opened that was not opened before."
+      },
+      "read": {
+        "book": "You crouch and look at the open page. A passage on the correct adjustment of atmospheric composition. You do not finish reading it.",
+        "_default": "There is not enough light to read by."
+      },
+      "take": {
+        "book": "__INVENTORY:add:found_book|You pick up the Book from the floor. Its pages are cool and very white. You do not know whose it was.__"
+      },
+      "examine": { "_default": "In the failing light, examination is limited to what can be touched." },
+      "talk": { "_default": "No one answers in the way you expect. Book passages, spoken by others, reach you in fragments." },
+      "listen": { "_default": "Above: air. Ahead: voices, unclear. Both are directions." },
+      "go": {
+        "up": "__TRANSITION:corridor_fork__",
+        "surface": "__TRANSITION:corridor_fork__",
+        "air": "__TRANSITION:corridor_fork__",
+        "kuno": "__TRANSITION:corridor_fork__",
+        "shaft": "__TRANSITION:corridor_fork__",
+        "forward": "__TRANSITION:corridor_fork__",
+        "ahead": "__TRANSITION:corridor_fork__",
+        "voices": "__TRANSITION:corridor_fork__",
+        "_default": "__TRANSITION:corridor_fork__"
+      },
+      "wait": { "_default": "The light in the walls fades. The air thickens. Waiting is no longer available." },
+      "_fallback": [
+        "The corridor offers two directions: air from above, voices ahead.",
+        "You could go toward the air above, or toward the voices ahead in the corridor.",
+        "Go up toward the air, or go forward toward the voices."
+      ]
+    }
+  },
+
+  "corridor_fork": {
+    "image": "corridor_dark.jpg",
+    "act": "Part Three \u2014 Homeless",
+    "title": "The Corridor \u2014 Junction",
+    "on_enter": "The corridor divides. To your left, a shaft opening \u2014 the ventilation system, its cover removed or failed. From it: air. Real air, cold and moving, from somewhere above that has no ceiling. To your right: the corridor continues into the deeper dark, and from it \u2014 faint, uncertain \u2014 the sound of voices. Or of one voice. The light in the walls is nearly gone.",
+    "actions": {
+      "look": {
+        "_default": "The shaft to the left. The corridor to the right. The fading walls between. You have to choose.",
+        "shaft": "A ventilation shaft, its cover gone. Cold air descends from it. The dark above it is different \u2014 vast, rather than enclosed.",
+        "corridor": "The corridor extends into deep dark. From it, the suggestion of a voice. You cannot tell if you are hearing it or remembering it.",
+        "air": "Cold. Not the Machine\u2019s air. Something that has been outside and carries that with it."
+      },
+      "examine": {
+        "shaft": "Rough walls. Handholds where the material has failed or been worked. It is climbable. It goes up.",
+        "voice": "__IF:kuno_final_message|It is possible that is Kuno\u2019s voice. He told you to come toward the shafts. He could be ahead, or he could be above.|The voice is unclear. You do not know if you are hearing it or imagining it.__",
+        "_default": "You are at a junction. The shaft is to the left. The corridor continues to the right."
+      },
+      "listen": {
+        "_default": "__IF:kuno_final_message|Above: air. Ahead: a voice you may recognise. He told you to come toward the shafts. He could be in either direction.|Above: cold air. Ahead: voices, unclear. Both call you.__"
+      },
+      "go": {
+        "up": "__TRANSITION:surface_approach__",
+        "shaft": "__TRANSITION:surface_approach__",
+        "left": "__TRANSITION:surface_approach__",
+        "surface": "__TRANSITION:surface_approach__",
+        "air": "__TRANSITION:surface_approach__",
+        "forward": "__IF:kuno_final_message|__TRANSITION:find_kuno__|__TRANSITION:witnessed_approach__|__",
+        "right": "__IF:kuno_final_message|__TRANSITION:find_kuno__|__TRANSITION:witnessed_approach__|__",
+        "ahead": "__IF:kuno_final_message|__TRANSITION:find_kuno__|__TRANSITION:witnessed_approach__|__",
+        "kuno": "__IF:kuno_final_message|__TRANSITION:find_kuno__|__TRANSITION:witnessed_approach__|__",
+        "voices": "__IF:kuno_final_message|__TRANSITION:find_kuno__|__TRANSITION:witnessed_approach__|__",
+        "_default": "__IF:kuno_final_message|__TRANSITION:find_kuno__|__TRANSITION:surface_approach__|__"
+      },
+      "wait": { "_default": "The light fails further. The air from the shaft is cold and real. You must choose." },
+      "_fallback": [
+        "The shaft is to the left: air, and up. The corridor is to the right: dark, and voices.",
+        "Go up toward the shaft and the air, or go forward into the corridor.",
+        "The shaft goes up to the surface. The corridor goes forward. You need to choose one."
+      ]
+    }
+  },
+
+  "witnessed_approach": {
+    "image": "corridor_dark.jpg",
+    "act": "Part Three \u2014 Homeless",
+    "title": "The Corridor \u2014 Further In",
+    "on_enter": "You go toward the voices. The corridor narrows. The phosphorescence fails entirely. You move by touch \u2014 one hand on the wall, which is warm still, faintly, from years of internal light. The voices resolve, briefly, into individual sounds: someone reciting a passage from the Book, slowly, as though the repetition itself is the point. Someone else, not speaking. The corridor ends at a wall. You sit against it. The wall is warm behind you. You are present at the end of something enormous.",
+    "flags_set_on_enter": ["went_forward"],
+    "actions": {
+      "listen": { "_default": "The recitation continues somewhere nearby. You cannot see the person. You do not need to. You listen until it stops." },
+      "examine": { "_default": "The dark is complete. Your hands on the wall. The warmth, slowly leaving it." },
+      "look": { "_default": "Nothing. The dark is final here." },
+      "wait": { "_default": "__GAMEOVER:witnessed_death__" },
+      "go": { "_default": "__GAMEOVER:witnessed_death__" },
+      "_fallback": "__GAMEOVER:witnessed_death__"
+    }
+  },
+
+  "find_kuno": {
+    "image": "corridor_dark.jpg",
+    "act": "Part Three \u2014 Homeless",
+    "title": "The Corridor \u2014 Searching",
+    "on_enter": "You go toward the voice. You call his name \u2014 using your voice, into air, without apparatus. The sound of your own voice in a physical space is strange. You have not heard yourself like this before. From somewhere ahead, in the dark: an answer. His voice, using yours back.",
+    "flags_set_on_enter": ["searching_for_kuno"],
+    "actions": {
+      "go": { "_default": "__TRANSITION:reunion__" },
+      "talk": { "kuno": "__TRANSITION:reunion__", "_default": "__TRANSITION:reunion__" },
+      "_fallback": "__TRANSITION:reunion__"
+    }
+  },
+
+  "reunion": {
+    "image": "corridor_dark.jpg",
+    "act": "Part Three \u2014 Homeless",
+    "title": "The Corridor",
+    "on_enter": "You find him. He is here, standing rather than sitting. His hand finds yours in the dark \u2014 unmediated physical contact, which the Book classified as unhygienic and unnecessary. It is neither of those things. \u2018The surface,\u2019 he says. \u2018I know the way.\u2019 Above you, through the failing walls of the world, the sound of air. Real air. Moving.",
+    "flags_set_on_enter": ["found_kuno"],
+    "actions": {
+      "go": { "_default": "__GAMEOVER:kuno_saved__" },
+      "talk": { "_default": "There is nothing that requires saying. You go." },
+      "wait": { "_default": "There is nothing to wait for. You go." },
+      "_fallback": "__GAMEOVER:kuno_saved__"
+    }
+  },
+
+  "surface_approach": {
+    "image": "surface_glimpse.jpg",
+    "act": "Part Three \u2014 Homeless",
+    "title": "The Shaft",
+    "on_enter": "You find the ventilation shaft and climb. The shaft is narrow and dark and real \u2014 rough material, unpadded, functional. Climbing it requires the use of your body in a way your body has not been used. It makes its objections known. You continue. Above, a lessening of the dark. Not the amber of the Machine \u2014 something older and larger, and not amber at all.",
+    "actions": {
+      "go": {
+        "up": "__IMAGE:surface_top.jpg|__GAMEOVER:surface__",
+        "surface": "__IMAGE:surface_top.jpg|__GAMEOVER:surface__",
+        "out": "__IMAGE:surface_top.jpg|__GAMEOVER:surface__",
+        "_default": "__IMAGE:surface_top.jpg|__GAMEOVER:surface__"
+      },
+      "examine": { "_default": "The shaft. The rough walls. The darkness above thinning toward something else." },
+      "look": { "_default": "Up. The dark becoming less dark. Something that is not amber." },
+      "wait": { "_default": "You do not wait. You go up." },
+      "_fallback": "__GAMEOVER:surface__"
+    }
+  }
+};
+// ─────────────────────────────────────────────────────────────────────────────
+</script>
+</body>
+</html>
