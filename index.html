@@ -807,8 +807,22 @@ function handleSubmit() {
   const raw = el.value.trim();
   if (!raw) return;
   el.value = '';
-  print(`> ${raw}`, 'player');
-  process(raw);
+
+  // Split compound commands on comma or "then"
+  const parts = raw.split(/,\s*|\s+then\s+/i).map(s => s.trim()).filter(Boolean);
+
+  if (parts.length > 1) {
+    // Execute each part in sequence with a small visual pause between
+    parts.forEach((part, i) => {
+      setTimeout(() => {
+        print(`> ${part}`, 'player');
+        process(part);
+      }, i * 80);
+    });
+  } else {
+    print(`> ${raw}`, 'player');
+    process(raw);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -833,6 +847,7 @@ const VERBS = {
   inventory:'inv', i:'inv', items:'inv',
   help:'help', '?':'help',
   why:'examine', what:'examine', how:'examine', where:'examine', who:'examine',
+  put:'go', drop:'go', leave:'go', back:'go', return:'go',
 };
 
 const NOISE = new Set([
@@ -1247,8 +1262,7 @@ const SCENES = {
 
   "kuno_why": {
     "_passage_only": true,
-    "on_enter": "\u2018Why?\u2019 you ask. \u2018I have seen something. I cannot transmit it through the plate. It is \u2014 the plate does not carry it.\u2019 A pause. \u2018Also, I may be made Homeless soon.\u2019 The word settles in the cell air. Homelessness: the most absolute of sanctions. To be expelled from the system. Cut off. You have never known anyone threatened with it. \u2018What have you done?\u2019 \u2018Come and see me,\u2019 he says. \u2018Come to me, and I will tell you everything.\u2019",
-    "flags_set_on_enter": ["knows_threat"],
+    "on_enter": "\u2018Why?\u2019 you ask. \u2018I have seen something. I cannot transmit it through the plate. It is \u2014 the plate does not carry it.\u2019 A pause. \u2018I have done something, also. Something the Committee will have views about. Come and see me,\u2019 he says. \u2018Come to me, and I will tell you everything.\u2019",
     "actions": {
       "talk": {
         "kuno": "__PASSAGE:kuno_press__",
@@ -1256,7 +1270,7 @@ const SCENES = {
         "_default": "__PASSAGE:kuno_press__"
       },
       "look": {
-        "_default": "Kuno\u2019s face in the plate. The word Homeless is still in the air between you."
+        "_default": "Kuno\u2019s face in the plate. Something he will not say through it is still in the air between you."
       },
       "examine": {
         "kuno": "His expression is one you do not have a name for. He is not afraid, which is itself alarming.",
@@ -1502,7 +1516,7 @@ const SCENES = {
 
   "kuno_detail": {
     "_passage_only": true,
-    "on_enter": "\u2018The sky,\u2019 he says. \u2018Do you know \u2014 did you ever consider \u2014 that the sky has no ceiling? It simply extends. It goes on.\u2019 You sit in his armchair; he in his. For a moment the conversation has the quality of a plate call \u2014 and then it does not, because he is here, and the words arrive without compression or loss. \u2018There were hills. Green \u2014 but the word doesn\u2019t carry it. The plate has never transmitted that green. And something living, that moved away from me when I came near. I think it was afraid of me.\u2019 He pauses. \u2018I think I was afraid of it. It was the first real thing I had been afraid of.\u2019",
+    "on_enter": "\u2018The sky,\u2019 he says. \u2018Do you know \u2014 did you ever consider \u2014 that the sky has no ceiling? It simply extends. It goes on. And at night \u2014 I was there at night briefly \u2014 there are stars. The Book explains stars. But the explanation and the stars are not the same thing.\u2019 You sit in his armchair; he in his. For a moment the conversation has the quality of a plate call \u2014 and then it does not, because he is here, and the words arrive without compression or loss. \u2018There were hills. Green \u2014 but the word doesn\u2019t carry it. The plate has never transmitted that green. And then \u2014 I thought I was alone. I was not alone. There was a figure. Not a body, not a passenger \u2014 a person, though the word barely applied, worn and dark and present. They reached toward me.\u2019 He stops. \u2018Before I could reach back, the ground took them. Something in the ground. I heard it more than saw it. They were gone. I came back.\u2019",
     "actions": {
       "talk": {
         "kuno": "__PASSAGE:kuno_homeless_threat__",
@@ -1526,22 +1540,32 @@ const SCENES = {
 
   "kuno_homeless_threat": {
     "_passage_only": true,
-    "on_enter": "He has been reported. He does not know who informed the Committee. The charge is attempting to experience the world first-hand, which falls under the provision against unmechanised living. The judgement, when it comes, will determine whether he is to be made Homeless. He speaks of this with a calm that troubles you more than distress would have. \u2018You are not afraid,\u2019 you say. It is not quite a question. \u2018I am trying not to be,\u2019 he says. \u2018Come and see the shafts before you go. I want to show you something.\u2019",
-    "flags_set_on_enter": ["knows_full_story"],
+    "on_enter": "He has been reported. He does not know who informed the Committee. The charge is attempting to experience the world first-hand, which falls under the provision against unmechanised living. The judgement, when it comes, will determine whether he is to be made Homeless. \u2018When I tried to return,\u2019 he says, \u2018the Machine found me. There are things in the walls of the shaft \u2014 in the earth itself. They reached for me. I had not known the Mending Apparatus extended so far.\u2019 He speaks of this with a calm that troubles you more than distress would have. \u2018You are not afraid,\u2019 you say. It is not quite a question. \u2018I am trying not to be,\u2019 he says. \u2018Come and see the shafts before you go. I want to show you something.\u2019",
+    "flags_set_on_enter": ["knows_full_story", "knows_threat"],
     "actions": {
       "talk": {
         "shafts": "__PASSAGE:vashti_decision_look__",
         "yes": "__PASSAGE:vashti_decision_look__",
         "no": "__PASSAGE:vashti_refuses_shafts__",
         "kuno": "__PASSAGE:vashti_decision_look__",
+        "mending": "\u2018They were not like the Mending Apparatus in the cells,\u2019 he says. \u2018Those are small, corrective. These were \u2014 larger. Purposeful. I think they have always been there. I think the shaft has always been watched.\u2019",
+        "tentacle": "\u2018They were not like the Mending Apparatus in the cells,\u2019 he says. \u2018Those are small, corrective. These were \u2014 larger. Purposeful. I think they have always been there. I think the shaft has always been watched.\u2019",
+        "apparatus": "\u2018They were not like the Mending Apparatus in the cells,\u2019 he says. \u2018Those are small, corrective. These were \u2014 larger. Purposeful. I think they have always been there. I think the shaft has always been watched.\u2019",
+        "person": "\u2018I do not know who she was,\u2019 he says quietly. \u2018She reached toward me. I think she had been out there for a long time. I think she was not the only one.\u2019",
+        "woman": "\u2018I do not know who she was,\u2019 he says quietly. \u2018She reached toward me. I think she had been out there for a long time. I think she was not the only one.\u2019",
+        "homeless": "\u2018I do not know who she was,\u2019 he says. \u2018She reached toward me. I think she was Homeless. I think the Homeless survive.\u2019 He lets that sit between you.",
         "_default": "__PASSAGE:vashti_decision_look__"
+      },
+      "examine": {
+        "kuno": "He is calm in a way that reads differently now. Not the calm of someone who is not afraid. The calm of someone who has decided something.",
+        "_default": "The room. His calm. The things he has said that the Book has no section for."
       },
       "go": {
         "shafts": "__PASSAGE:vashti_decision_look__",
         "_default": "__PASSAGE:vashti_decision_look__"
       },
       "wait": { "_default": "__PASSAGE:vashti_decision_look__" },
-      "_fallback": "__PASSAGE:vashti_decision_look__"
+      "_fallback": "He has said what he has said. The shafts are waiting."
     }
   },
 

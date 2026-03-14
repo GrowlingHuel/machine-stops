@@ -122,10 +122,7 @@
   },
   "kuno_why": {
     "_passage_only": true,
-    "on_enter": "‘Why?’ you ask. ‘I have seen something. I cannot transmit it through the plate. It is — the plate does not carry it.’ A pause. ‘Also, I may be made Homeless soon.’ The word settles in the cell air. Homelessness: the most absolute of sanctions. To be expelled from the system. Cut off. You have never known anyone threatened with it. ‘What have you done?’ ‘Come and see me,’ he says. ‘Come to me, and I will tell you everything.’",
-    "flags_set_on_enter": [
-      "knows_threat"
-    ],
+    "on_enter": "‘Why?’ you ask. ‘I have seen something. I cannot transmit it through the plate. It is — the plate does not carry it.’ A pause. ‘I have done something, also. Something the Committee will have views about. Come and see me,’ he says. ‘Come to me, and I will tell you everything.’",
     "actions": {
       "talk": {
         "kuno": "__PASSAGE:kuno_press__",
@@ -133,7 +130,7 @@
         "_default": "__PASSAGE:kuno_press__"
       },
       "look": {
-        "_default": "Kuno’s face in the plate. The word Homeless is still in the air between you."
+        "_default": "Kuno’s face in the plate. Something he will not say through it is still in the air between you."
       },
       "examine": {
         "kuno": "His expression is one you do not have a name for. He is not afraid, which is itself alarming.",
@@ -400,7 +397,7 @@
   },
   "kuno_detail": {
     "_passage_only": true,
-    "on_enter": "‘The sky,’ he says. ‘Do you know — did you ever consider — that the sky has no ceiling? It simply extends. It goes on.’ You sit in his armchair; he in his. For a moment the conversation has the quality of a plate call — and then it does not, because he is here, and the words arrive without compression or loss. ‘There were hills. Green — but the word doesn’t carry it. The plate has never transmitted that green. And something living, that moved away from me when I came near. I think it was afraid of me.’ He pauses. ‘I think I was afraid of it. It was the first real thing I had been afraid of.’",
+    "on_enter": "‘The sky,’ he says. ‘Do you know — did you ever consider — that the sky has no ceiling? It simply extends. It goes on. And at night — I was there at night briefly — there are stars. The Book explains stars. But the explanation and the stars are not the same thing.’ You sit in his armchair; he in his. For a moment the conversation has the quality of a plate call — and then it does not, because he is here, and the words arrive without compression or loss. ‘There were hills. Green — but the word doesn’t carry it. The plate has never transmitted that green. And then — I thought I was alone. I was not alone. There was a figure. Not a body, not a passenger — a person, though the word barely applied, worn and dark and present. They reached toward me.’ He stops. ‘Before I could reach back, the ground took them. Something in the ground. I heard it more than saw it. They were gone. I came back.’",
     "actions": {
       "talk": {
         "kuno": "__PASSAGE:kuno_homeless_threat__",
@@ -428,9 +425,10 @@
   },
   "kuno_homeless_threat": {
     "_passage_only": true,
-    "on_enter": "He has been reported. He does not know who informed the Committee. The charge is attempting to experience the world first-hand, which falls under the provision against unmechanised living. The judgement, when it comes, will determine whether he is to be made Homeless. He speaks of this with a calm that troubles you more than distress would have. ‘You are not afraid,’ you say. It is not quite a question. ‘I am trying not to be,’ he says. ‘Come and see the shafts before you go. I want to show you something.’",
+    "on_enter": "He has been reported. He does not know who informed the Committee. The charge is attempting to experience the world first-hand, which falls under the provision against unmechanised living. The judgement, when it comes, will determine whether he is to be made Homeless. ‘When I tried to return,’ he says, ‘the Machine found me. There are things in the walls of the shaft — in the earth itself. They reached for me. I had not known the Mending Apparatus extended so far.’ He speaks of this with a calm that troubles you more than distress would have. ‘You are not afraid,’ you say. It is not quite a question. ‘I am trying not to be,’ he says. ‘Come and see the shafts before you go. I want to show you something.’",
     "flags_set_on_enter": [
-      "knows_full_story"
+      "knows_full_story",
+      "knows_threat"
     ],
     "actions": {
       "talk": {
@@ -438,7 +436,17 @@
         "yes": "__PASSAGE:vashti_decision_look__",
         "no": "__PASSAGE:vashti_refuses_shafts__",
         "kuno": "__PASSAGE:vashti_decision_look__",
+        "mending": "‘They were not like the Mending Apparatus in the cells,’ he says. ‘Those are small, corrective. These were — larger. Purposeful. I think they have always been there. I think the shaft has always been watched.’",
+        "tentacle": "‘They were not like the Mending Apparatus in the cells,’ he says. ‘Those are small, corrective. These were — larger. Purposeful. I think they have always been there. I think the shaft has always been watched.’",
+        "apparatus": "‘They were not like the Mending Apparatus in the cells,’ he says. ‘Those are small, corrective. These were — larger. Purposeful. I think they have always been there. I think the shaft has always been watched.’",
+        "person": "‘I do not know who she was,’ he says quietly. ‘She reached toward me. I think she had been out there for a long time. I think she was not the only one.’",
+        "woman": "‘I do not know who she was,’ he says quietly. ‘She reached toward me. I think she had been out there for a long time. I think she was not the only one.’",
+        "homeless": "‘I do not know who she was,’ he says. ‘She reached toward me. I think she was Homeless. I think the Homeless survive.’ He lets that sit between you.",
         "_default": "__PASSAGE:vashti_decision_look__"
+      },
+      "examine": {
+        "kuno": "He is calm in a way that reads differently now. Not the calm of someone who is not afraid. The calm of someone who has decided something.",
+        "_default": "The room. His calm. The things he has said that the Book has no section for."
       },
       "go": {
         "shafts": "__PASSAGE:vashti_decision_look__",
@@ -447,7 +455,7 @@
       "wait": {
         "_default": "__PASSAGE:vashti_decision_look__"
       },
-      "_fallback": "__PASSAGE:vashti_decision_look__"
+      "_fallback": "He has said what he has said. The shafts are waiting."
     }
   },
   "vashti_decision_look": {
