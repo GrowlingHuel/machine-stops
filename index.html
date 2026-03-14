@@ -609,20 +609,10 @@ const ITEMS = {
     thumb: null,
     desc:  'The Book of the Machine. Ninth edition. The sum of all permitted wisdom.'
   },
-  kuno_letter: {
-    label: "Kuno's Note",
+  found_book: {
+    label: 'The Book',
     thumb: null,
-    desc:  "A written note from Kuno. Delivered through the postal tubes. It reads only: Come."
-  },
-  respirator: {
-    label: 'Respirator',
-    thumb: null,
-    desc:  'A machine-issued respirator for surface passage. Its use is officially discouraged.'
-  },
-  committee_notice: {
-    label: 'Notice',
-    thumb: null,
-    desc:  'An official notice from the Central Committee. Precise, absolute, and very calm.'
+    desc:  'The Book of the Machine. You cannot read it in the dark. You hold it anyway.'
   },
 };
 
@@ -843,7 +833,11 @@ const VERBS = {
   talk:'talk', speak:'talk', ask:'talk', tell:'talk', say:'talk',
   answer:'talk', address:'talk', call:'talk',
   give:'give', show:'give', offer:'give',
-  wait:'wait', rest:'wait', think:'wait', listen:'wait',
+  wait:'wait', rest:'wait',
+  think:'think',
+  listen:'listen',
+  breathe:'breathe', inhale:'breathe',
+  feel:'feel', touch_feel:'feel',
   inventory:'inv', i:'inv', items:'inv',
   help:'help', '?':'help',
   why:'examine', what:'examine', how:'examine', where:'examine', who:'examine',
@@ -924,6 +918,12 @@ function process(raw) {
   // 3. verb default
   if (!result) result = acts[verb]?._default;
 
+  // 3b. for think/listen/breathe/feel, fall through to wait if scene has no handler
+  if (!result && (verb === 'think' || verb === 'listen' || verb === 'breathe' || verb === 'feel')) {
+    result = acts['wait']?.[noun] || acts['wait']?._default;
+    if (result) resolved = true;
+  }
+
   // 4. scene fallback — counts as unresolved
   if (!result) {
     result = acts._fallback;
@@ -941,8 +941,8 @@ function process(raw) {
   // Reset fallback counter on genuine resolution
   if (resolved) G.fallback_count = 0;
 
-  // Track consecutive waits
-  if (verb === 'wait') {
+  // Track consecutive waits (think/listen/breathe/feel that fell through also count)
+  if (verb === 'wait' || verb === 'think' || verb === 'listen' || verb === 'breathe' || verb === 'feel') {
     G.wait_count++;
   } else {
     G.wait_count = 0;
@@ -1017,8 +1017,12 @@ function resolve(r) {
 
   if (r.startsWith('__IF:')) {
     const inner = r.slice(5).replace(/__$/, '');
-    const [flag, t, f] = inner.split('|');
-    resolve(G.flags[flag] ? t : (f || ''));
+    const firstPipe  = inner.indexOf('|');
+    const secondPipe = inner.indexOf('|', firstPipe + 1);
+    const flag = inner.slice(0, firstPipe);
+    const t    = secondPipe === -1 ? inner.slice(firstPipe + 1) : inner.slice(firstPipe + 1, secondPipe);
+    const f    = secondPipe === -1 ? '' : inner.slice(secondPipe + 1);
+    resolve(G.flags[flag] ? t : f);
     return;
   }
 

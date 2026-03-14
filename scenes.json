@@ -137,7 +137,6 @@
         "_default": "The plate transmits his face. What it cannot transmit is what his face contains."
       },
       "go": {
-        "kuno": "__TRANSITION:preparing_travel__",
         "_default": "You are not ready to close the call. Something in his voice requires more of you."
       },
       "wait": {
@@ -264,7 +263,11 @@
       "wait": {
         "_default": "The arrangement is made. The time approaches."
       },
-      "_fallback": "__TRANSITION:corridor__"
+      "_fallback": [
+        "The arrangement is made. The vessel waits at the platform.",
+        "There is nothing to do here but go. The corridor leads to the airship.",
+        "__TRANSITION:corridor__"
+      ]
     }
   },
   "corridor": {
@@ -484,8 +487,17 @@
         "_default": "The open panel. The dark shaft behind it. Kuno beside you, saying nothing. These are the things in the room."
       },
       "wait": {
-        "_default": "You stand at the entrance. Kuno waits. The air from the shaft arrives in slow pulses."
+        "_default": [
+          "You stand at the entrance. Kuno waits. The air from the shaft arrives in slow pulses.",
+          "The air continues. Kuno says nothing. The shaft is still there, still open.",
+          "You can go in, or you can go back. Those are the directions available to you."
+        ]
       },
+      "_fallback": [
+        "Kuno has shown you the shaft. He is waiting to see what you do with it.",
+        "The shaft is open. You could lean in, breathe the air, or go back.",
+        "Go in to look closer, or go back to leave."
+      ],
       "enter": {
         "_default": "__FLAG:looked_in_shaft|You lean into the opening. The dark is absolute and the air is different — cool, carrying something unfiltered. You do not go further. But you have been in it, briefly.__"
       },
@@ -499,8 +511,7 @@
       },
       "take": {
         "_default": "There is nothing here to take. There is only the shaft, and what it leads to."
-      },
-      "_fallback": "Kuno has shown you the shaft. He is waiting to see what you do with it."
+      }
     }
   },
   "vashti_refuses_shafts": {
@@ -1125,7 +1136,7 @@
         "_default": "__TRANSITION:corridor_fork__"
       },
       "wait": {
-        "_default": "The light in the walls fades. The air thickens. Waiting is no longer available."
+        "_default": "__TRANSITION:corridor_fork__"
       },
       "_fallback": [
         "The corridor offers two directions: air from above, voices ahead.",
