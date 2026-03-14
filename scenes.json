@@ -82,13 +82,18 @@
       },
       "examine": {
         "book": "You are already examining it.",
+        "table": "The reading desk is plain and functional. The Book rests on it. That is the desk’s purpose.",
+        "desk": "The reading desk is plain and functional. The Book rests on it. That is the desk’s purpose.",
         "_default": "In the Book, all things are described in terms of their procedure."
       },
-      "go": {
-        "_default": "__TRANSITION:vashti_cell__"
-      },
       "look": {
+        "table": "The desk. The Book on it. The cell beyond.",
+        "desk": "The desk. The Book on it. The cell beyond.",
         "_default": "Page after page of orderly instruction. The world, made navigable."
+      },
+      "go": {
+        "table": "The desk is not a destination. You close the Book and return your attention to the room.",
+        "_default": "You close the Book and return your attention to the room."
       },
       "_fallback": "The Book does not speak to that. You close it and return your attention to the room."
     }
